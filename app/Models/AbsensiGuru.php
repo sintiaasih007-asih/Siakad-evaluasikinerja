@@ -16,7 +16,11 @@ class AbsensiGuru extends Model
         'longitude',
         'alamat',
         'foto_absensi',
-        'face_verified'
+        'face_verified',
+        'qr_verified',
+        'qr_token',
+        'scan_time',
+        'jarak',
     ];
 
     public function guru()

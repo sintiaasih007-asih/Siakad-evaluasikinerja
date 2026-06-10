@@ -28,6 +28,7 @@ use App\Http\Controllers\AbsensiGuruController;
 use App\Http\Controllers\Orangtua\PenilaianKarakterController;
 use App\Http\Controllers\Admin\LaporanAbsensiGuruController;
 use App\Http\Controllers\Admin\ProfileSekolahController;
+use App\Http\Controllers\Admin\QrAbsensiGuruController;
 use App\Http\Controllers\Admin\LaporanAbsensiSiswaController;
 
 
@@ -116,6 +117,20 @@ Route::middleware(['auth','admin'])->group(function () {
         '/profil-sekolah',
         [ProfileSekolahController::class, 'update']
     )->name('profil-sekolah.update');
+
+    // QR Absensi Guru — hanya admin
+    Route::get('/qr-absensi-guru', [QrAbsensiGuruController::class, 'index'])
+        ->name('qr-absensi-guru.index');
+
+    Route::post('/qr-absensi-guru/generate', [QrAbsensiGuruController::class, 'generate'])
+        ->name('qr-absensi-guru.generate');
+
+    Route::post('/qr-absensi-guru/reset', [QrAbsensiGuruController::class, 'reset'])
+        ->name('qr-absensi-guru.reset');
+
+    // Toggle Evaluasi (admin)
+    Route::post('/evaluasi/toggle', [\App\Http\Controllers\Admin\ProfileSekolahController::class, 'toggleEvaluasi'])
+        ->name('evaluasi.toggle');
 });
 
 Route::get('/setup-password/{token}', [SetupPasswordController::class,'form']);
@@ -124,10 +139,12 @@ Route::post('/setup-password/{token}', [SetupPasswordController::class,'save']);
 Route::get('/sikap', [SikapController::class,'index'])->name('sikap.index');
 Route::get('/sikap/create/{id}', [SikapController::class,'create'])->name('sikap.create');
 Route::post('/sikap/store', [SikapController::class,'store'])->name('sikap.store');
+Route::get('/sikap/riwayat/{id}', [SikapController::class,'riwayat'])->name('sikap.riwayat');
 
 Route::get('/kedisiplinan', [KedisiplinanController::class,'index'])->name('kedisiplinan.index');
 Route::get('/kedisiplinan/create/{id}', [KedisiplinanController::class,'create'])->name('kedisiplinan.create');
 Route::post('/kedisiplinan/store', [KedisiplinanController::class,'store'])->name('kedisiplinan.store');
+Route::get('/kedisiplinan/riwayat/{id}', [KedisiplinanController::class,'riwayat'])->name('kedisiplinan.riwayat');
 
 Route::resource('siswa', SiswaController::class);
 

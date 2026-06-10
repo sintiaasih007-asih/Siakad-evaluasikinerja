@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProfileSekolah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -10,110 +11,136 @@ class EvaluasiBulananController extends Controller
 {
     public function index(Request $request)
     {
-        $guruId = Auth::user()->guru_id;
+        $user   = Auth::user();
+        $guruId = $user->guru_id;
 
-        // ambil tahun ajaran aktif
+        // Cek apakah evaluasi bulanan diaktifkan oleh admin
+        $profil          = ProfileSekolah::first();
+        $evaluasiAktif   = $profil?->evaluasi_bulanan_aktif ?? false;
+
+        // Jika user adalah admin, selalu bisa akses
+        if ($user->role === 'admin') {
+            $evaluasiAktif = true;
+        }
+
+        // Tahun ajaran aktif
         $tahun = DB::table('tahun_ajarans')
             ->where('is_active', 1)
             ->first();
 
-        // ambil jadwal guru
+        // Jadwal milik guru yang login (mapel + kelas unik)
         $jadwals = DB::table('jadwals')
             ->join('mapels', 'mapels.id', '=', 'jadwals.mapel_id')
-            ->join('kelas', 'kelas.id', '=', 'jadwals.kelas_id')
+            ->join('kelas',  'kelas.id',  '=', 'jadwals.kelas_id')
             ->where('jadwals.guru_id', $guruId)
             ->select(
                 'jadwals.id',
+                'jadwals.kelas_id',
                 'mapels.nama_mapel',
                 'kelas.nama_kelas'
             )
+            ->get()
+            ->unique(fn($j) => $j->kelas_id . '-' . $j->nama_mapel);
+
+        // Kelas yang diampu guru ini saja
+        $kelasIds  = $jadwals->pluck('kelas_id')->unique()->values();
+        $kelasList = DB::table('kelas')
+            ->whereIn('id', $kelasIds)
             ->get();
 
-        // default jadwal
-        $jadwalId = $request->jadwal_id ?? ($jadwals->first()->id ?? null);
+        // Parameter filter
+        $jadwalId = $request->jadwal_id ?? null;
+        $bulan    = $request->bulan    ?? null;
+        $kelasId  = $request->kelas_id ?? null;
 
-        // bulan default
-        $bulan = $request->bulan ?? date('m');
+        // Tabel hasil hanya muncul jika semua filter sudah dipilih
+        $filtered = $jadwalId && $bulan && $kelasId;
+        $data     = [];
 
-        // kelas list (SEMUA kelas tanpa filter error)
-        $kelasList = DB::table('kelas')->get();
+        if ($filtered && $evaluasiAktif) {
 
-        // ambil siswa berdasarkan kelas
-        $kelasId = $request->kelas_id;
-
-        $siswas = DB::table('siswas')
-            ->when($kelasId, function ($q) use ($kelasId) {
-                $q->where('kelas_id', $kelasId);
-            })
-            ->get();
-
-        $data = [];
-
-        foreach ($siswas as $siswa) {
-
-            $nilai = DB::table('nilais')
-                ->where('siswa_id', $siswa->id)
+            // Pastikan jadwal yang dipilih memang milik guru ini
+            $jadwalValid = DB::table('jadwals')
+                ->where('id', $jadwalId)
                 ->where('guru_id', $guruId)
-                ->where('jadwal_id', $jadwalId)
-                ->where('bulan', $this->namaBulan($bulan))
-                ->where('tahun_ajaran', $tahun->tahun ?? '')
-                ->avg('nilai') ?? 0;
+                ->exists();
 
-            $absenTotal = DB::table('absensi_details as d')
-                ->join('absensis as a', 'a.id', '=', 'd.absensi_id')
-                ->where('d.siswa_id', $siswa->id)
-                ->where('a.jadwal_id', $jadwalId)
-                ->where('a.bulan', $this->namaBulan($bulan))
-                ->where('a.tahun_ajaran', $tahun->tahun ?? '')
-                ->count();
+            // Pastikan kelas yang dipilih termasuk kelas yang diampu
+            $kelasValid = $kelasIds->contains($kelasId);
 
-            $hadir = DB::table('absensi_details as d')
-                ->join('absensis as a', 'a.id', '=', 'd.absensi_id')
-                ->where('d.siswa_id', $siswa->id)
-                ->where('d.status', 'hadir')
-                ->where('a.jadwal_id', $jadwalId)
-                ->where('a.bulan', $this->namaBulan($bulan))
-                ->where('a.tahun_ajaran', $tahun->tahun ?? '')
-                ->count();
+            if ($jadwalValid && $kelasValid) {
 
-            $absensi = $absenTotal > 0 ? round(($hadir / $absenTotal) * 100, 2) : 0;
+                $siswas = DB::table('siswas')
+                    ->where('kelas_id', $kelasId)
+                    ->orderBy('nama')
+                    ->get();
 
-            $sikap = DB::table('sikaps')
-                ->where('siswa_id', $siswa->id)
-                ->where('guru_id', $guruId)
-                ->where('jadwal_id', $jadwalId)
-                ->where('bulan', $this->namaBulan($bulan))
-                ->where('tahun_ajaran', $tahun->tahun ?? '')
-                ->avg('nilai_sikap') ?? 0;
+                $namaBulan = $this->namaBulan($bulan);
 
-            $disiplin = DB::table('kedisiplinans')
-                ->where('siswa_id', $siswa->id)
-                ->where('guru_id', $guruId)
-                ->where('jadwal_id', $jadwalId)
-                ->where('bulan', $this->namaBulan($bulan))
-                ->where('tahun_ajaran', $tahun->tahun ?? '')
-                ->avg('nilai_disiplin') ?? 0;
+                foreach ($siswas as $siswa) {
 
-            // fuzzy sederhana
-            $skor = ($nilai * 0.4) + ($absensi * 0.3) + ($sikap * 0.15) + ($disiplin * 0.15);
+                    $nilai = DB::table('nilais')
+                        ->where('siswa_id', $siswa->id)
+                        ->where('guru_id', $guruId)
+                        ->where('jadwal_id', $jadwalId)
+                        ->where('bulan', $namaBulan)
+                        ->where('tahun_ajaran', $tahun->tahun ?? '')
+                        ->avg('nilai') ?? 0;
 
-            $kategori = $this->kategori($skor);
+                    $absenTotal = DB::table('absensi_details as d')
+                        ->join('absensis as a', 'a.id', '=', 'd.absensi_id')
+                        ->where('d.siswa_id', $siswa->id)
+                        ->where('a.jadwal_id', $jadwalId)
+                        ->where('a.bulan', $namaBulan)
+                        ->where('a.tahun_ajaran', $tahun->tahun ?? '')
+                        ->count();
 
-            $data[] = [
-                'nama' => $siswa->nama,
-                'nilai' => round($nilai, 2),
-                'absensi' => round($absensi, 2),
-                'sikap' => round($sikap, 2),
-                'disiplin' => round($disiplin, 2),
-                'skor' => round($skor, 2),
-                'kategori' => $kategori,
-            ];
+                    $hadir = DB::table('absensi_details as d')
+                        ->join('absensis as a', 'a.id', '=', 'd.absensi_id')
+                        ->where('d.siswa_id', $siswa->id)
+                        ->where('d.status', 'hadir')
+                        ->where('a.jadwal_id', $jadwalId)
+                        ->where('a.bulan', $namaBulan)
+                        ->where('a.tahun_ajaran', $tahun->tahun ?? '')
+                        ->count();
+
+                    $absensi = $absenTotal > 0
+                        ? round(($hadir / $absenTotal) * 100, 2)
+                        : 0;
+
+                    $sikap = DB::table('sikaps')
+                        ->where('siswa_id', $siswa->id)
+                        ->where('guru_id', $guruId)
+                        ->where('jadwal_id', $jadwalId)
+                        ->where('bulan', $namaBulan)
+                        ->where('tahun_ajaran', $tahun->tahun ?? '')
+                        ->avg('nilai_sikap') ?? 0;
+
+                    $disiplin = DB::table('kedisiplinans')
+                        ->where('siswa_id', $siswa->id)
+                        ->where('guru_id', $guruId)
+                        ->where('jadwal_id', $jadwalId)
+                        ->where('bulan', $namaBulan)
+                        ->where('tahun_ajaran', $tahun->tahun ?? '')
+                        ->avg('nilai_disiplin') ?? 0;
+
+                    $skor = ($nilai * 0.4) + ($absensi * 0.3) + ($sikap * 0.15) + ($disiplin * 0.15);
+
+                    $data[] = [
+                        'nama'     => $siswa->nama,
+                        'nilai'    => round($nilai, 2),
+                        'absensi'  => round($absensi, 2),
+                        'sikap'    => round($sikap, 2),
+                        'disiplin' => round($disiplin, 2),
+                        'skor'     => round($skor, 2),
+                        'kategori' => $this->kategori($skor),
+                    ];
+                }
+
+                // Urutkan berdasarkan skor
+                usort($data, fn($a, $b) => $b['skor'] <=> $a['skor']);
+            }
         }
-
-        // sorting ranking
-        usort($data, function ($a, $b) {
-            return $b['skor'] <=> $a['skor'];
-        });
 
         return view('evaluasi-bulanan.index', compact(
             'jadwals',
@@ -121,11 +148,14 @@ class EvaluasiBulananController extends Controller
             'data',
             'tahun',
             'jadwalId',
-            'bulan'
+            'bulan',
+            'kelasId',
+            'filtered',
+            'evaluasiAktif'
         ));
     }
 
-    private function kategori($skor)
+    private function kategori(float $skor): string
     {
         if ($skor >= 85) return 'Sangat Baik';
         if ($skor >= 75) return 'Baik';
@@ -133,14 +163,12 @@ class EvaluasiBulananController extends Controller
         return 'Perlu Pembinaan';
     }
 
-    private function namaBulan($bulan)
+    private function namaBulan(string $bulan): string
     {
-        $map = [
+        return [
             '01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April',
             '05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus',
             '09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'
-        ];
-
-        return $map[$bulan] ?? $bulan;
+        ][$bulan] ?? $bulan;
     }
 }

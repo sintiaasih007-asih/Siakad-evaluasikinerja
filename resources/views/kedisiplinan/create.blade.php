@@ -1,118 +1,147 @@
 <x-app-layout>
 
-<x-page-header 
-title="Input Nilai Kedisiplinan"
-subtitle="Penilaian Disiplin Siswa"
-/>
+    <x-page-header
+        title="Input Nilai Kedisiplinan"
+        subtitle="{{ $jadwal->mapel->nama_mapel }} — {{ $jadwal->kelas->nama_kelas }}"
+    />
 
-<div class="bg-white rounded-xl shadow-sm border p-6">
+    {{-- Info Cards --}}
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"/>
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Kelas</p>
+                <p class="text-sm font-bold text-slate-800 truncate">{{ $jadwal->kelas->nama_kelas }}</p>
+            </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/>
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Mata Pelajaran</p>
+                <p class="text-sm font-bold text-slate-800 truncate">{{ $jadwal->mapel->nama_mapel }}</p>
+            </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Guru</p>
+                <p class="text-sm font-bold text-slate-800 truncate">{{ $jadwal->guru->nama ?? '-' }}</p>
+            </div>
+        </div>
+    </div>
 
-<form action="{{ route('kedisiplinan.store') }}" method="POST">
-@csrf
+    {{-- Form --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-<input type="hidden" name="jadwal_id" value="{{ $jadwal->id }}">
+        <div class="bg-gradient-to-r from-amber-600 to-orange-600 px-6 py-4 flex items-center gap-3">
+            <div class="bg-white/10 p-2 rounded-xl">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-white font-bold text-sm">Form Nilai Kedisiplinan</h3>
+                <p class="text-amber-100 text-xs">{{ $siswas->count() }} siswa</p>
+            </div>
+        </div>
 
-<div class="mb-4 font-semibold text-gray-700">
-{{ $jadwal->mapel->nama_mapel }} - {{ $jadwal->kelas->nama_kelas }}
-</div>
+        <form action="{{ route('kedisiplinan.store') }}" method="POST" class="p-6">
+            @csrf
+            <input type="hidden" name="jadwal_id" value="{{ $jadwal->id }}">
 
-<div class="overflow-x-auto">
+            {{-- Legenda --}}
+            <div class="mb-5 bg-amber-50 border border-amber-100 rounded-xl p-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-600">
+                <span><strong class="text-emerald-700">81–100</strong> : Sangat Disiplin</span>
+                <span><strong class="text-blue-700">71–80</strong> : Disiplin</span>
+                <span><strong class="text-amber-700">61–70</strong> : Cukup Disiplin</span>
+                <span><strong class="text-rose-700">0–60</strong> : Kurang Disiplin</span>
+            </div>
 
-<table class="w-full border">
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase w-12">No</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase">Nama Siswa</th>
+                            <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase w-36">Nilai (0–100)</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($siswas as $s)
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-5 py-3 text-slate-400 text-xs">{{ $loop->iteration }}</td>
+                            <td class="px-5 py-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                        {{ strtoupper(substr($s->nama,0,1)) }}
+                                    </div>
+                                    <span class="font-medium text-slate-800">{{ $s->nama }}</span>
+                                </div>
+                                <input type="hidden" name="siswa_id[]" value="{{ $s->id }}">
+                            </td>
+                            <td class="px-5 py-3 text-center">
+                                <input type="number" name="nilai_disiplin[]"
+                                    min="0" max="100" placeholder="0"
+                                    class="nilai-input w-24 text-center rounded-xl border-slate-300 text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                    required>
+                            </td>
+                            <td class="px-5 py-3">
+                                <input type="text" name="keterangan[]"
+                                    class="ket-input w-full rounded-xl border-slate-200 bg-slate-50 text-sm text-slate-600"
+                                    readonly placeholder="Otomatis">
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
-<thead class="bg-gray-100">
-<tr>
-<th class="p-3 border">No</th>
-<th class="p-3 border">Nama</th>
-<th class="p-3 border">Nilai</th>
-<th class="p-3 border">Keterangan</th>
-</tr>
-</thead>
+            <div class="flex items-center justify-between mt-6 pt-5 border-t border-slate-100">
+                <a href="{{ route('kedisiplinan.index') }}"
+                    class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 hover:border-slate-400 px-4 py-2.5 rounded-xl transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Kembali
+                </a>
+                <button type="submit"
+                    class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Simpan Kedisiplinan
+                </button>
+            </div>
 
-<tbody>
+        </form>
+    </div>
 
-@foreach($siswas as $s)
-
-<tr>
-<td class="p-2 border">{{ $loop->iteration }}</td>
-
-<td class="p-2 border">
-{{ $s->nama }}
-<input type="hidden" name="siswa_id[]" value="{{ $s->id }}">
-</td>
-
-<td class="p-2 border">
-<input type="number"
-name="nilai_disiplin[]"
-min="0"
-max="100"
-class="nilai-input w-full rounded border-gray-300"
-required>
-</td>
-
-<td class="p-2 border">
-<input type="text"
-name="keterangan[]"
-class="ket-input w-full rounded border-gray-300 bg-gray-50"
-readonly>
-</td>
-
-</tr>
-
-@endforeach
-
-</tbody>
-
-</table>
-
-</div>
-
-<div class="mt-5 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-81 - 100 : Sangat Disiplin<br>
-71 - 80 : Disiplin<br>
-61 - 70 : Cukup Disiplin<br>
-0 - 60 : Kurang Disiplin
-</div>
-
-<div class="flex justify-end mt-5">
-<button type="submit"
-class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">
-Simpan
-</button>
-</div>
-
-</form>
-
-</div>
-
-<script>
-document.querySelectorAll('.nilai-input').forEach(function(input){
-
-input.addEventListener('keyup', function(){
-
-let nilai = parseInt(this.value);
-let row = this.closest('tr');
-let ket = row.querySelector('.ket-input');
-
-if(nilai >= 81){
-ket.value = 'Sangat Disiplin';
-}
-else if(nilai >= 71){
-ket.value = 'Disiplin';
-}
-else if(nilai >= 61){
-ket.value = 'Cukup Disiplin';
-}
-else if(nilai >= 0){
-ket.value = 'Kurang Disiplin';
-}
-else{
-ket.value = '';
-}
-
-});
-
-});
-</script>
+    <script>
+    document.querySelectorAll('.nilai-input').forEach(input => {
+        input.addEventListener('input', function () {
+            const n = parseInt(this.value);
+            const ket = this.closest('tr').querySelector('.ket-input');
+            if (n >= 81)      ket.value = 'Sangat Disiplin';
+            else if (n >= 71) ket.value = 'Disiplin';
+            else if (n >= 61) ket.value = 'Cukup Disiplin';
+            else if (n >= 0)  ket.value = 'Kurang Disiplin';
+            else              ket.value = '';
+        });
+    });
+    </script>
 
 </x-app-layout>

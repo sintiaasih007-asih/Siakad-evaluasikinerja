@@ -57,6 +57,8 @@
 
                 <p>Akreditasi : {{ $profil->akreditasi ?: '-' }}</p>
 
+                <p>Kurikulum : {{ $profil->kurikulum ?: '-' }}</p>
+
                 <p>Status : {{ $profil->status_sekolah ?: '-' }}</p>
 
                 <p>Kepala Sekolah : {{ $profil->kepala_sekolah ?: '-' }}</p>
@@ -134,6 +136,21 @@
                     value="{{ old('akreditasi',$profil->akreditasi) }}"
                     class="w-full rounded-lg border-gray-300"
                 >
+            </div>
+
+            <div>
+                <label>Kurikulum</label>
+                <select
+                    name="kurikulum"
+                    class="w-full rounded-lg border-gray-300"
+                >
+                    <option value="">-- Pilih Kurikulum --</option>
+                    @foreach(['Kurikulum 2013 (K-13)', 'Kurikulum Merdeka', 'Kurikulum 2013 Revisi', 'Kurikulum 2006 (KTSP)', 'Kurikulum Nasional', 'Kurikulum Darurat (Kondisi Khusus)'] as $kur)
+                        <option value="{{ $kur }}" {{ old('kurikulum', $profil->kurikulum) == $kur ? 'selected' : '' }}>
+                            {{ $kur }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <div>
@@ -471,6 +488,27 @@
             >
                 Ambil Koordinat Otomatis
             </button>
+        </div>
+
+        <div class="mt-4">
+            <label class="block mb-1 text-sm font-medium text-gray-700">
+                Radius Absensi (meter)
+            </label>
+            <div class="flex items-center gap-3">
+                <input
+                    type="number"
+                    name="radius_absensi"
+                    value="{{ old('radius_absensi', $profil->radius_absensi ?? 100) }}"
+                    min="10"
+                    max="5000"
+                    class="w-40 rounded-xl border-gray-300"
+                    placeholder="100"
+                >
+                <span class="text-sm text-gray-500">meter dari lokasi sekolah</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">
+                Guru hanya bisa absen jika berada dalam radius ini dari koordinat sekolah.
+            </p>
         </div>
 
     </div>

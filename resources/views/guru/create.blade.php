@@ -182,6 +182,7 @@
                                     width="360"
                                     height="270"
                                     autoplay
+                                    playsinline
                                     muted
                                     class="rounded-xl border-2 border-blue-300 shadow-md bg-gray-900 block"
                                 ></video>
@@ -300,65 +301,130 @@
         </div>
     </div>
 
-    {{-- FACE API --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+    {{-- FACE API — tanpa defer agar tersedia sebelum script inline dijalankan --}}
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <script>
+        const video        = document.getElementById('video');
+        const captureBtn   = document.getElementById('captureFace');
+        const statusBox    = document.getElementById('statusFaceBox');
+        const statusText   = document.getElementById('statusFace');
+        const statusIcon   = document.getElementById('statusIcon');
+        const liveDot      = document.querySelector('.animate-pulse');
 
-        const video = document.getElementById('video');
+        /* ── helper: set status UI ─────────────────────────────────── */
+        function setStatus(icon, text, colorClass, borderClass) {
+            statusIcon.textContent = icon;
+            statusText.textContent = text;
+            statusText.className   = 'text-sm font-semibold ' + colorClass;
+            statusBox.className    = statusBox.className
+                .replace(/border-\S+/g, '')
+                .trim() + ' ' + borderClass;
+        }
 
+        /* ── matikan tombol Ambil Wajah sampai model & kamera siap ─── */
+        captureBtn.disabled = true;
+        captureBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        /* ── mulai kamera ──────────────────────────────────────────── */
         async function startCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setStatus('⚠️', 'Browser tidak mendukung kamera', 'text-yellow-600', 'border-yellow-300');
+                return;
+            }
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+                });
                 video.srcObject = stream;
-            } catch(err) {
-                alert('Kamera tidak dapat diakses');
-                console.log(err);
+                video.setAttribute('playsinline', true); // penting untuk Safari/iOS
+                await video.play();
+
+                /* aktifkan tombol setelah kamera menyala */
+                captureBtn.disabled = false;
+                captureBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                setStatus('🎥', 'Kamera aktif, siap rekam', 'text-blue-600', 'border-blue-300');
+            } catch (err) {
+                console.error('Kamera error:', err);
+                liveDot && liveDot.classList.remove('animate-pulse');
+
+                let pesan = 'Kamera tidak dapat diakses.';
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    pesan = 'Izin kamera ditolak. Izinkan akses kamera di browser lalu muat ulang halaman.';
+                } else if (err.name === 'NotFoundError') {
+                    pesan = 'Kamera tidak ditemukan pada perangkat ini.';
+                } else if (err.name === 'NotReadableError') {
+                    pesan = 'Kamera sedang digunakan aplikasi lain. Tutup aplikasi tersebut lalu muat ulang.';
+                }
+                setStatus('❌', pesan, 'text-red-500', 'border-red-200');
             }
         }
+
+        /* ── muat model face-api lalu nyalakan kamera ──────────────── */
+        setStatus('⏳', 'Memuat model AI…', 'text-gray-500', 'border-gray-200');
 
         Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
             faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
             faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-        ]).then(startCamera);
-
-        document.getElementById('captureFace').addEventListener('click', async () => {
-
-            const detection = await faceapi
-                .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                .withFaceLandmarks()
-                .withFaceDescriptor();
-
-            if (!detection) {
-                alert('Wajah tidak terdeteksi. Pastikan wajah terlihat jelas di kamera.');
-                return;
-            }
-
-            const descriptor = Array.from(detection.descriptor);
-            document.getElementById('face_descriptor').value = JSON.stringify(descriptor);
-
-            // Update status UI
-            const statusBox  = document.getElementById('statusFaceBox');
-            const statusText = document.getElementById('statusFace');
-            const statusIcon = document.getElementById('statusIcon');
-
-            statusIcon.textContent = '✅';
-            statusText.textContent = 'Wajah berhasil direkam';
-            statusText.classList.remove('text-red-500');
-            statusText.classList.add('text-green-600');
-            statusBox.classList.remove('border-red-200');
-            statusBox.classList.add('border-green-300');
+        ])
+        .then(startCamera)
+        .catch(err => {
+            console.error('Gagal memuat model:', err);
+            setStatus('❌', 'Gagal memuat model AI. Periksa koneksi.', 'text-red-500', 'border-red-200');
         });
 
-        document.getElementById('guruForm').addEventListener('submit', function(e) {
+        /* ── tombol Ambil Wajah ────────────────────────────────────── */
+        captureBtn.addEventListener('click', async () => {
+            captureBtn.disabled = true;
+            captureBtn.textContent = '⏳ Mendeteksi…';
+
+            try {
+                const detection = await faceapi
+                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+
+                if (!detection) {
+                    alert('Wajah tidak terdeteksi. Pastikan wajah terlihat jelas dan pencahayaan cukup.');
+                    captureBtn.disabled = false;
+                    captureBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg> Ambil Wajah`;
+                    return;
+                }
+
+                const descriptor = Array.from(detection.descriptor);
+                document.getElementById('face_descriptor').value = JSON.stringify(descriptor);
+
+                setStatus('✅', 'Wajah berhasil direkam', 'text-green-600', 'border-green-300');
+                captureBtn.innerHTML = `✅ Rekam Ulang`;
+                captureBtn.disabled = false;
+
+            } catch (err) {
+                console.error('Deteksi error:', err);
+                alert('Terjadi kesalahan saat mendeteksi wajah. Coba lagi.');
+                captureBtn.disabled = false;
+                captureBtn.textContent = 'Ambil Wajah';
+            }
+        });
+
+        /* ── validasi form sebelum submit ──────────────────────────── */
+        document.getElementById('guruForm').addEventListener('submit', function (e) {
             const descriptor = document.getElementById('face_descriptor').value;
             if (!descriptor) {
                 e.preventDefault();
-                alert('Silakan rekam wajah guru terlebih dahulu.');
+                alert('Silakan rekam wajah guru terlebih dahulu sebelum menyimpan.');
             }
         });
 
+        /* ── matikan stream saat halaman ditutup / pindah ──────────── */
+        window.addEventListener('beforeunload', () => {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+            }
+        });
     </script>
 
 </x-app-layout>

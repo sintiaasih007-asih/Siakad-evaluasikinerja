@@ -2,29 +2,29 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
+use App\Models\AbsensiGuru;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
-#[Signature('app:generate-daily-q-r')]
-#[Description('Command description')]
 class GenerateDailyQR extends Command
 {
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    protected $signature   = 'app:generate-daily-qr';
+    protected $description = 'Generate token QR absensi harian guru';
+
+    public function handle(): void
     {
-        AbsensiGuru::query()
-            ->update([
-                'qr_token' => null
-            ]);
+        // Reset qr_token lama
+        AbsensiGuru::query()->update(['qr_token' => null]);
+
+        // Simpan token baru ke cache hingga akhir hari
+        $token = Str::random(32);
 
         cache()->put(
             'qr_absensi_harian',
-            Str::random(30),
+            $token,
             now()->endOfDay()
         );
+
+        $this->info('Token QR harian berhasil dibuat: ' . $token);
     }
 }

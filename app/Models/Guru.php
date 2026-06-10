@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Guru extends Model
 {
-    protected $fillable = ['nama', 'nip', 'email'];
+    protected $fillable = [
+        'nama',
+        'nip',
+        'email',
+        'foto_wajah',
+        'face_descriptor',
+    ];
 
     public function kelas()
     {

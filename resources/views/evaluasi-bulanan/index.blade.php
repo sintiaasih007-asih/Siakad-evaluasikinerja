@@ -1,227 +1,312 @@
 <x-app-layout>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <x-page-header
+        title="Evaluasi Bulanan"
+        subtitle="Rekap perkembangan akademik siswa per bulan"
+    />
 
-    {{-- HEADER --}}
-    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-        <div>
-            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
-                Evaluasi Bulanan
-            </h1>
-
-            <p class="text-slate-500 mt-1">
-                Tahun Ajaran:
-                <span class="font-semibold text-slate-700">
-                    {{ $tahun->tahun ?? '-' }}
-                </span>
-            </p>
+    {{-- ── AKSES DITUTUP ───────────────────────────────────────────────── --}}
+    @if(!$evaluasiAktif)
+    <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-20 h-20 bg-amber-100 rounded-3xl flex items-center justify-center mb-5">
+            <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+            </svg>
         </div>
-
-        <div class="bg-white px-4 py-2 rounded-xl shadow-sm border text-sm text-slate-600">
-            📊 Ranking Otomatis Sistem Fuzzy
+        <h2 class="text-xl font-bold text-slate-700">Evaluasi Bulanan Belum Dibuka</h2>
+        <p class="text-slate-500 text-sm mt-2 max-w-md">
+            Halaman ini hanya bisa diakses setelah admin mengaktifkan evaluasi bulanan.
+            Hubungi admin sekolah untuk membuka akses.
+        </p>
+        <div class="mt-6 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 text-sm text-amber-700 max-w-sm">
+            <strong>Admin:</strong> Aktifkan melalui Dashboard → Kelola Evaluasi
         </div>
-
     </div>
 
-    {{-- FILTER CARD --}}
-    <div class="bg-white/80 backdrop-blur border shadow-sm rounded-2xl p-5 mb-6">
+    @else
 
-        <form method="GET" class="grid md:grid-cols-4 gap-4 items-end">
-
-            {{-- JADWAL --}}
-            <div>
-                <label class="text-xs text-slate-500 font-medium">Mata Pelajaran</label>
-
-                <select name="jadwal_id"
-                    class="w-full mt-1 border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-
-                    @foreach($jadwals as $j)
-                        <option value="{{ $j->id }}"
-                            {{ request('jadwal_id', $jadwalId) == $j->id ? 'selected' : '' }}>
-                            {{ $j->nama_mapel }} • {{ $j->nama_kelas }}
-                        </option>
-                    @endforeach
-
-                </select>
+    {{-- ── HEADER INFO ─────────────────────────────────────────────────── --}}
+    <div class="bg-gradient-to-r from-teal-700 to-emerald-600 rounded-2xl p-6 mb-6 flex items-center justify-between shadow-lg">
+        <div>
+            <p class="text-teal-100 text-xs font-semibold uppercase tracking-widest mb-1">Sistem Fuzzy Scoring</p>
+            <h2 class="text-xl font-bold text-white">Evaluasi Bulanan</h2>
+            <p class="text-teal-100 text-sm mt-1">
+                Tahun Ajaran:
+                <strong class="text-white">{{ $tahun->tahun ?? '-' }}</strong>
+                · Guru: <strong class="text-white">{{ auth()->user()->name }}</strong>
+            </p>
+        </div>
+        <div class="hidden md:flex flex-col items-end gap-1 text-xs text-teal-100">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-300"></span>Nilai Akademik (40%)
             </div>
-
-            {{-- BULAN --}}
-            <div>
-                <label class="text-xs text-slate-500 font-medium">Bulan</label>
-
-                <select name="bulan"
-                    class="w-full mt-1 border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500">
-
-                    @php
-                        $bulanList = [
-                            '01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April',
-                            '05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus',
-                            '09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'
-                        ];
-                    @endphp
-
-                    @foreach($bulanList as $key => $val)
-                        <option value="{{ $key }}" {{ $bulan == $key ? 'selected' : '' }}>
-                            {{ $val }}
-                        </option>
-                    @endforeach
-
-                </select>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-300"></span>Absensi (30%)
             </div>
-
-            {{-- KELAS --}}
-            <div>
-                <label class="text-xs text-slate-500 font-medium">Kelas</label>
-
-                <select name="kelas_id"
-                    class="w-full mt-1 border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500">
-
-                    <option value="">Semua Kelas</option>
-
-                    @foreach($kelasList as $k)
-                        <option value="{{ $k->id }}"
-                            {{ request('kelas_id') == $k->id ? 'selected' : '' }}>
-                            {{ $k->nama_kelas }}
-                        </option>
-                    @endforeach
-
-                </select>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-300"></span>Sikap (15%)
             </div>
-
-            {{-- BUTTON --}}
-            <div>
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-sm transition">
-                    Terapkan Filter
-                </button>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-lime-300"></span>Disiplin (15%)
             </div>
+        </div>
+    </div>
 
+    {{-- ── FILTER CARD ──────────────────────────────────────────────────── --}}
+    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
+
+        <div class="px-6 py-4 bg-slate-50 border-b flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+            </svg>
+            <h3 class="text-sm font-bold text-slate-700">Filter Evaluasi</h3>
+            <span class="text-xs text-slate-400">— Pilih semua filter untuk menampilkan hasil</span>
+        </div>
+
+        <form method="GET" class="p-6">
+            <div class="grid md:grid-cols-4 gap-4">
+
+                {{-- Mata Pelajaran --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                        Mata Pelajaran
+                        <span class="text-red-400">*</span>
+                    </label>
+                    <select name="jadwal_id"
+                        class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">— Pilih Mapel —</option>
+                        @foreach($jadwals as $j)
+                            <option value="{{ $j->id }}"
+                                {{ request('jadwal_id', $jadwalId) == $j->id ? 'selected' : '' }}>
+                                {{ $j->nama_mapel }} · {{ $j->nama_kelas }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Bulan --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                        Bulan
+                        <span class="text-red-400">*</span>
+                    </label>
+                    <select name="bulan"
+                        class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">— Pilih Bulan —</option>
+                        @foreach(['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $key=>$val)
+                            <option value="{{ $key }}" {{ $bulan == $key ? 'selected' : '' }}>{{ $val }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Kelas (hanya kelas yang diampu) --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                        Kelas
+                        <span class="text-red-400">*</span>
+                    </label>
+                    <select name="kelas_id"
+                        class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">— Pilih Kelas —</option>
+                        @foreach($kelasList as $k)
+                            <option value="{{ $k->id }}"
+                                {{ request('kelas_id', $kelasId) == $k->id ? 'selected' : '' }}>
+                                {{ $k->nama_kelas }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Tombol --}}
+                <div class="flex items-end gap-2">
+                    <button type="submit"
+                        class="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110 3a7.5 7.5 0 016.65 13.65z"/>
+                        </svg>
+                        Tampilkan
+                    </button>
+                    <a href="{{ route('evaluasi.bulanan') }}"
+                        class="px-3 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-500 text-sm transition">
+                        Reset
+                    </a>
+                </div>
+
+            </div>
         </form>
 
     </div>
 
-    {{-- TABLE CARD --}}
+    {{-- ── TABEL HASIL (kondisional) ────────────────────────────────────── --}}
+    @if(!$filtered)
+
+    {{-- Belum filter --}}
+    <div class="bg-white rounded-2xl shadow-sm border p-16 text-center">
+        <div class="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-teal-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+            </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-700">Pilih Filter Terlebih Dahulu</h3>
+        <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
+            Pilih Mata Pelajaran, Bulan, dan Kelas untuk melihat hasil evaluasi siswa.
+        </p>
+    </div>
+
+    @else
+
+    {{-- Hasil sudah difilter --}}
+    @php
+        $namaBulanTerpilih = ['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'][$bulan] ?? $bulan;
+        $jadwalTerpilih = $jadwals->firstWhere('id', $jadwalId);
+    @endphp
+
     <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
 
-        {{-- TABLE HEADER --}}
-        <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
-
-            <h3 class="font-semibold text-slate-700">
-                Hasil Evaluasi Siswa
-            </h3>
-
-            <span class="text-xs text-slate-500">
-                Auto sorted by skor fuzzy
-            </span>
-
+        {{-- Header Tabel --}}
+        <div class="px-6 py-4 bg-slate-800 flex items-center justify-between">
+            <div>
+                <h3 class="font-bold text-white text-sm">
+                    Hasil Evaluasi — {{ $namaBulanTerpilih }}
+                </h3>
+                <p class="text-slate-300 text-xs mt-0.5">
+                    {{ $jadwalTerpilih?->nama_mapel ?? '' }}
+                    · {{ $jadwalTerpilih?->nama_kelas ?? '' }}
+                    · TA {{ $tahun->tahun ?? '-' }}
+                </p>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-300">
+                <span>{{ count($data) }} siswa</span>
+                <span class="bg-teal-500/20 text-teal-300 px-2.5 py-1 rounded-full font-semibold">
+                    Ranking Otomatis
+                </span>
+            </div>
         </div>
 
+        {{-- Rekap mini --}}
+        @if(count($data))
+        @php
+            $distrib = collect($data)->groupBy('kategori')->map->count();
+        @endphp
+        <div class="grid grid-cols-2 md:grid-cols-4 border-b">
+            @foreach(['Sangat Baik'=>['bg-emerald-50','text-emerald-700','border-emerald-100'],'Baik'=>['bg-blue-50','text-blue-700','border-blue-100'],'Perlu Bimbingan'=>['bg-amber-50','text-amber-700','border-amber-100'],'Perlu Pembinaan'=>['bg-rose-50','text-rose-700','border-rose-100']] as $kat=>$cls)
+            <div class="px-5 py-4 border-r last:border-0 {{ $cls[0] }} flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold {{ $cls[1] }} uppercase tracking-wide">{{ $kat }}</p>
+                    <p class="text-2xl font-bold {{ $cls[1] }} mt-0.5">{{ $distrib[$kat] ?? 0 }}</p>
+                </div>
+                <div class="text-lg opacity-50">
+                    @if($kat==='Sangat Baik') 🌟
+                    @elseif($kat==='Baik') 👍
+                    @elseif($kat==='Perlu Bimbingan') 📘
+                    @else ⚠️
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        {{-- Tabel --}}
         <div class="overflow-x-auto">
-
             <table class="w-full text-sm">
-
-                <thead class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider">
-
+                <thead class="bg-slate-100 border-b border-slate-200">
                     <tr>
-                        <th class="px-4 py-3 text-center">Rank</th>
-                        <th class="px-4 py-3 text-left">Nama</th>
-                        <th class="px-4 py-3 text-center">Nilai</th>
-                        <th class="px-4 py-3 text-center">Absensi</th>
-                        <th class="px-4 py-3 text-center">Sikap</th>
-                        <th class="px-4 py-3 text-center">Disiplin</th>
-                        <th class="px-4 py-3 text-center">Skor</th>
-                        <th class="px-4 py-3 text-center">Kategori</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase w-12">Rank</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase">Nama Siswa</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Nilai</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Absensi</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Sikap</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Disiplin</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Skor</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Kategori</th>
                     </tr>
-
                 </thead>
-
                 <tbody class="divide-y divide-slate-100">
-
                     @forelse($data as $i => $item)
-
-                    <tr class="hover:bg-slate-50 transition">
-
-                        {{-- RANK --}}
-                        <td class="text-center font-bold text-slate-700 py-3">
-                            {{ $i + 1 }}
+                    @php
+                        $rankBg = match(true) {
+                            $i === 0 => 'bg-amber-400 text-white',
+                            $i === 1 => 'bg-slate-400 text-white',
+                            $i === 2 => 'bg-orange-400 text-white',
+                            default  => 'bg-slate-100 text-slate-600'
+                        };
+                        $katBadge = match($item['kategori']) {
+                            'Sangat Baik'     => 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+                            'Baik'            => 'bg-blue-100 text-blue-700 border border-blue-200',
+                            'Perlu Bimbingan' => 'bg-amber-100 text-amber-700 border border-amber-200',
+                            default           => 'bg-rose-100 text-rose-700 border border-rose-200',
+                        };
+                    @endphp
+                    <tr class="hover:bg-slate-50 transition {{ $i < 3 ? 'font-medium' : '' }}">
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold {{ $rankBg }}">
+                                {{ $i + 1 }}
+                            </span>
                         </td>
-
-                        {{-- NAMA --}}
-                        <td class="px-4 py-3 font-semibold text-slate-700">
-                            {{ $item['nama'] }}
+                        <td class="px-5 py-3.5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($item['nama'],0,1)) }}
+                                </div>
+                                <span class="text-slate-800">{{ $item['nama'] }}</span>
+                            </div>
                         </td>
-
-                        {{-- NILAI --}}
-                        <td class="text-center">
+                        <td class="px-5 py-3.5 text-center font-mono font-semibold text-indigo-700">
                             {{ $item['nilai'] }}
                         </td>
-
-                        {{-- ABSENSI --}}
-                        <td class="text-center">
-                            <span class="px-2 py-1 rounded-lg bg-slate-100">
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold font-mono">
                                 {{ $item['absensi'] }}%
                             </span>
                         </td>
-
-                        {{-- SIKAP --}}
-                        <td class="text-center">{{ $item['sikap'] }}</td>
-
-                        {{-- DISIPLIN --}}
-                        <td class="text-center">{{ $item['disiplin'] }}</td>
-
-                        {{-- SKOR --}}
-                        <td class="text-center font-bold text-blue-600">
-                            {{ $item['skor'] }}
+                        <td class="px-5 py-3.5 text-center font-mono text-slate-700">{{ $item['sikap'] }}</td>
+                        <td class="px-5 py-3.5 text-center font-mono text-slate-700">{{ $item['disiplin'] }}</td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="text-teal-700 font-bold font-mono text-base">{{ $item['skor'] }}</span>
                         </td>
-
-                        {{-- KATEGORI --}}
-                        <td class="text-center">
-
-                            @php
-                                $kategori = $item['kategori'];
-                            @endphp
-
-                            @if($kategori=='Sangat Baik')
-                                <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">
-                                    {{ $kategori }}
-                                </span>
-
-                            @elseif($kategori=='Baik')
-                                <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-                                    {{ $kategori }}
-                                </span>
-
-                            @elseif($kategori=='Perlu Bimbingan')
-                                <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">
-                                    {{ $kategori }}
-                                </span>
-
-                            @else
-                                <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700">
-                                    {{ $kategori }}
-                                </span>
-                            @endif
-
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $katBadge }}">
+                                {{ $item['kategori'] }}
+                            </span>
                         </td>
-
                     </tr>
-
                     @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-10 text-slate-500">
-                                Tidak ada data evaluasi
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="8" class="px-5 py-16 text-center">
+                            <div class="flex flex-col items-center gap-3 text-slate-400">
+                                <svg class="w-12 h-12 opacity-40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <p class="text-sm font-medium">Belum ada data evaluasi untuk filter ini</p>
+                                <p class="text-xs">Pastikan nilai, absensi, sikap, dan kedisiplinan sudah diinput untuk bulan ini</p>
+                            </div>
+                        </td>
+                    </tr>
                     @endforelse
-
                 </tbody>
-
             </table>
-
         </div>
+
+        {{-- Keterangan Fuzzy --}}
+        @if(count($data))
+        <div class="px-6 py-4 bg-slate-50 border-t flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+            <span class="font-semibold text-slate-600">Formula Fuzzy:</span>
+            <span>Nilai×40%</span>
+            <span>+ Absensi×30%</span>
+            <span>+ Sikap×15%</span>
+            <span>+ Disiplin×15%</span>
+        </div>
+        @endif
 
     </div>
 
-</div>
+    @endif {{-- end $filtered --}}
+
+    @endif {{-- end $evaluasiAktif --}}
 
 </x-app-layout>

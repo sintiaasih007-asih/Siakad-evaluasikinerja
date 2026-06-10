@@ -11,8 +11,10 @@ use App\Models\Agenda;
 use App\Models\Jadwal;
 use App\Models\Nilai;
 use App\Models\Absensi;
+use App\Models\AbsensiGuru;
 use App\Models\UserLogin;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,13 +31,9 @@ class DashboardController extends Controller
     {
         $loginPerHari = UserLogin::selectRaw("
             DATE(login_at) as tanggal,
-
             SUM(CASE WHEN role='guru' THEN 1 ELSE 0 END) as guru,
-
             SUM(CASE WHEN role='guru&wali_kelas' THEN 1 ELSE 0 END) as walikelas,
-
             SUM(CASE WHEN role='kepala_sekolah' THEN 1 ELSE 0 END) as kepsek,
-
             SUM(CASE WHEN role='orang_tua' THEN 1 ELSE 0 END) as orangtua
         ")
         ->whereDate('login_at', '>=', Carbon::now()->subDays(7))
@@ -43,16 +41,25 @@ class DashboardController extends Controller
         ->orderBy('tanggal')
         ->get();
 
-        return view('dashboard.admin', [
-            'totalSiswa'   => Siswa::count(),
-            'totalGuru'    => Guru::count(),
-            'totalKelas'   => Kelas::count(),
-            'totalMapel'   => Mapel::count(),
-            'pengumuman'   => Pengumuman::latest()->take(5)->get(),
-            'agenda'       => Agenda::latest()->take(5)->get(),
-            'loginPerHari' => $loginPerHari,
-        ]);
+        // QR Token & statistik absensi guru hari ini
+        $qrToken          = cache('qr_absensi_harian');
+        $guruHadirHariIni = AbsensiGuru::whereDate('tanggal', today())->count();
 
+        // Profil sekolah (untuk tampilkan kurikulum di dashboard)
+        $profilSekolah = \App\Models\ProfileSekolah::first();
+
+        return view('dashboard.admin', [
+            'totalSiswa'       => Siswa::count(),
+            'totalGuru'        => Guru::count(),
+            'totalKelas'       => Kelas::count(),
+            'totalMapel'       => Mapel::count(),
+            'pengumuman'       => Pengumuman::latest()->take(5)->get(),
+            'agenda'           => Agenda::latest()->take(5)->get(),
+            'loginPerHari'     => $loginPerHari,
+            'qrToken'          => $qrToken,
+            'guruHadirHariIni' => $guruHadirHariIni,
+            'profilSekolah'    => $profilSekolah,
+        ]);
     }
 
     /*
@@ -64,59 +71,68 @@ class DashboardController extends Controller
     public function guru()
     {
         $user = Auth::user();
+        $guru = $user->guru;
+
+        // Hari ini dalam bahasa Indonesia (sesuai kolom hari di jadwals)
+        $hariIni     = now()->locale('id')->isoFormat('dddd'); // Senin, Selasa, dst.
+        $hariInggris = now()->format('l');                     // Monday, Tuesday, dst.
 
         /*
-        |--------------------------------------------------------------------------
-        | DATA STATISTIK
-        |--------------------------------------------------------------------------
+        |----------------------------------------------------------------------
+        | JADWAL HARI INI — hanya milik guru yang login
+        |----------------------------------------------------------------------
         */
+        $jadwals = collect();
+        if ($guru) {
+            $jadwals = Jadwal::with(['mapel', 'kelas'])
+                ->where('guru_id', $guru->id)
+                ->where(function ($q) use ($hariIni, $hariInggris) {
+                    $q->whereRaw('LOWER(hari) = ?', [strtolower($hariIni)])
+                      ->orWhereRaw('LOWER(hari) = ?', [strtolower($hariInggris)]);
+                })
+                ->orderBy('jam_masuk')
+                ->get();
+        }
 
-        $totalSiswa = Siswa::count();
+        /*
+        |----------------------------------------------------------------------
+        | ID kelas yang diajar guru ini
+        |----------------------------------------------------------------------
+        */
+        $kelasIds = $guru
+            ? Jadwal::where('guru_id', $guru->id)->pluck('kelas_id')->unique()
+            : collect();
 
-        $totalAbsensi = Absensi::count();
+        /*
+        |----------------------------------------------------------------------
+        | TOTAL SISWA — hanya siswa di kelas yang diampu
+        |----------------------------------------------------------------------
+        */
+        $totalSiswa = $kelasIds->isNotEmpty()
+            ? Siswa::whereIn('kelas_id', $kelasIds)->count()
+            : 0;
 
-        $totalNilai = Nilai::count();
+        /*
+        |----------------------------------------------------------------------
+        | TOTAL ABSENSI — hanya pertemuan yang dibuat guru ini
+        |----------------------------------------------------------------------
+        */
+        $totalAbsensi = $guru
+            ? Absensi::where('guru_id', $guru->id)->count()
+            : 0;
+
+        /*
+        |----------------------------------------------------------------------
+        | TOTAL NILAI — hanya nilai yang diinput guru ini
+        |----------------------------------------------------------------------
+        */
+        $totalNilai = $guru
+            ? Nilai::where('guru_id', $guru->id)->count()
+            : 0;
 
         $totalPengumuman = Pengumuman::count();
-
-    
-        /*
-        |--------------------------------------------------------------------------
-        | JADWAL
-        |--------------------------------------------------------------------------
-        */
-
-        $jadwals = Jadwal::with(['mapel', 'kelas'])
-            ->latest()
-            ->take(5)
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | PENGUMUMAN
-        |--------------------------------------------------------------------------
-        */
-
-        $pengumuman = Pengumuman::latest()
-            ->take(5)
-            ->get();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AGENDA
-        |--------------------------------------------------------------------------
-        */
-
-        $agenda = Agenda::latest()
-            ->take(5)
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN VIEW
-        |--------------------------------------------------------------------------
-        */
+        $pengumuman      = Pengumuman::latest()->take(5)->get();
+        $agenda          = Agenda::latest()->take(5)->get();
 
         return view('dashboard.guruu', compact(
             'totalSiswa',
@@ -125,7 +141,8 @@ class DashboardController extends Controller
             'totalPengumuman',
             'jadwals',
             'pengumuman',
-            'agenda'
+            'agenda',
+            'hariIni'
         ));
     }
 
@@ -175,66 +192,82 @@ class DashboardController extends Controller
     public function wakel()
     {
         $user = Auth::user();
+        $guru = $user->guru;
+
+        // Hari ini
+        $hariIni     = now()->locale('id')->isoFormat('dddd');
+        $hariInggris = now()->format('l');
 
         /*
-        |--------------------------------------------------------------------------
-        | DATA STATISTIK
-        |--------------------------------------------------------------------------
+        |----------------------------------------------------------------------
+        | JADWAL HARI INI — hanya milik guru/wakel yang login
+        |----------------------------------------------------------------------
         */
+        $jadwals = collect();
+        if ($guru) {
+            $jadwals = Jadwal::with(['mapel', 'kelas'])
+                ->where('guru_id', $guru->id)
+                ->where(function ($q) use ($hariIni, $hariInggris) {
+                    $q->whereRaw('LOWER(hari) = ?', [strtolower($hariIni)])
+                      ->orWhereRaw('LOWER(hari) = ?', [strtolower($hariInggris)]);
+                })
+                ->orderBy('jam_masuk')
+                ->get();
+        }
 
-        $totalSiswa = Siswa::count();
+        /*
+        |----------------------------------------------------------------------
+        | Kelas binaan wali kelas (relasi guru_id di tabel kelas)
+        |----------------------------------------------------------------------
+        */
+        $kelasWali = $guru
+            ? Kelas::where('guru_id', $guru->id)->first()
+            : null;
 
-        $totalAbsensi = Absensi::count();
+        /*
+        |----------------------------------------------------------------------
+        | Semua kelas yang diajar (dari jadwal)
+        |----------------------------------------------------------------------
+        */
+        $kelasIds = $guru
+            ? Jadwal::where('guru_id', $guru->id)->pluck('kelas_id')->unique()
+            : collect();
 
-        $totalNilai = Nilai::count();
+        // Sertakan kelas binaan jika belum ada
+        if ($kelasWali && !$kelasIds->contains($kelasWali->id)) {
+            $kelasIds->push($kelasWali->id);
+        }
+
+        /*
+        |----------------------------------------------------------------------
+        | TOTAL SISWA — siswa di kelas yang diampu + kelas binaan
+        |----------------------------------------------------------------------
+        */
+        $totalSiswa = $kelasIds->isNotEmpty()
+            ? Siswa::whereIn('kelas_id', $kelasIds)->count()
+            : 0;
+
+        /*
+        |----------------------------------------------------------------------
+        | TOTAL ABSENSI — pertemuan absensi yang dibuat guru ini
+        |----------------------------------------------------------------------
+        */
+        $totalAbsensi = $guru
+            ? Absensi::where('guru_id', $guru->id)->count()
+            : 0;
+
+        /*
+        |----------------------------------------------------------------------
+        | TOTAL NILAI — nilai yang diinput guru ini
+        |----------------------------------------------------------------------
+        */
+        $totalNilai = $guru
+            ? Nilai::where('guru_id', $guru->id)->count()
+            : 0;
 
         $totalPengumuman = Pengumuman::count();
-
-        /*
-        |--------------------------------------------------------------------------
-        | KELAS WALI
-        |--------------------------------------------------------------------------
-        */
-
-        $kelasWali = Kelas::where('guru_id', $user->id)->first();
-
-        /*
-        |--------------------------------------------------------------------------
-        | JADWAL
-        |--------------------------------------------------------------------------
-        */
-
-        $jadwals = Jadwal::with(['mapel', 'kelas'])
-            ->latest()
-            ->take(5)
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | PENGUMUMAN
-        |--------------------------------------------------------------------------
-        */
-
-        $pengumuman = Pengumuman::latest()
-            ->take(5)
-            ->get();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AGENDA
-        |--------------------------------------------------------------------------
-        */
-
-        $agenda = Agenda::latest()
-            ->take(5)
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN VIEW
-        |--------------------------------------------------------------------------
-        */
+        $pengumuman      = Pengumuman::latest()->take(5)->get();
+        $agenda          = Agenda::latest()->take(5)->get();
 
         return view('dashboard.wakel', compact(
             'totalSiswa',
@@ -244,7 +277,8 @@ class DashboardController extends Controller
             'kelasWali',
             'jadwals',
             'pengumuman',
-            'agenda'
+            'agenda',
+            'hariIni'
         ));
     }
 

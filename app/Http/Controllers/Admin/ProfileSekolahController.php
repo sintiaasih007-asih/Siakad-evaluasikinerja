@@ -36,6 +36,7 @@ class ProfileSekolahController extends Controller
             'status_sekolah'        => 'nullable|string|max:100',
             'jenjang'               => 'nullable|string|max:100',
             'akreditasi'            => 'nullable|string|max:50',
+            'kurikulum'             => 'nullable|string|max:100',
             'izin_operasional'      => 'nullable|string|max:255',
 
             'nama_yayasan'          => 'nullable|string|max:255',
@@ -56,6 +57,7 @@ class ProfileSekolahController extends Controller
 
             'latitude'              => 'nullable|max:50',
             'longitude'             => 'nullable|max:50',
+            'radius_absensi'        => 'nullable|integer|min:10|max:5000',
 
             'logo_sekolah'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'logo_yayasan'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -136,6 +138,7 @@ class ProfileSekolahController extends Controller
             'status_sekolah'        => $request->status_sekolah,
             'jenjang'               => $request->jenjang,
             'akreditasi'            => $request->akreditasi,
+            'kurikulum'             => $request->kurikulum,
             'izin_operasional'      => $request->izin_operasional,
 
             // Yayasan
@@ -162,6 +165,7 @@ class ProfileSekolahController extends Controller
             // Koordinat
             'latitude'              => $request->latitude,
             'longitude'             => $request->longitude,
+            'radius_absensi'        => $request->radius_absensi ?? 100,
 
             // Visi Misi
             'visi'                  => $request->visi,
@@ -176,5 +180,26 @@ class ProfileSekolahController extends Controller
                 'success',
                 'Profil sekolah berhasil diperbarui.'
             );
+    }
+
+    /**
+     * Toggle status evaluasi bulanan / semesteran.
+     */
+    public function toggleEvaluasi(Request $request)
+    {
+        $profil = ProfileSekolah::firstOrCreate([]);
+
+        $jenis = $request->jenis; // 'bulanan' atau 'semesteran'
+        $kolom = $jenis === 'semesteran'
+            ? 'evaluasi_semesteran_aktif'
+            : 'evaluasi_bulanan_aktif';
+
+        $profil->$kolom = !$profil->$kolom;
+        $profil->save();
+
+        $label  = $jenis === 'semesteran' ? 'Evaluasi Semesteran' : 'Evaluasi Bulanan';
+        $status = $profil->$kolom ? 'diaktifkan' : 'dinonaktifkan';
+
+        return back()->with('success', "$label berhasil $status.");
     }
 }
