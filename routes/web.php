@@ -20,6 +20,7 @@ use App\Http\Controllers\RekapNilaiKelasController;
 use App\Http\Controllers\RekapEvaluasiController;
 use App\Http\Controllers\RekapEvaluasiKelasController;
 use App\Http\Controllers\EvaluasiBulananController;
+use App\Http\Controllers\EvaluasiSemesteranController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\OrangTua\NilaiAnakController;
@@ -216,6 +217,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/evaluasi-bulanan', 
         [EvaluasiBulananController::class, 'index']
     )->name('evaluasi.bulanan');
+
+    Route::get('/hasil-evaluasi-semesteran',
+        [EvaluasiSemesteranController::class, 'index']
+    )->name('evaluasi.semesteran');
 
 });
 

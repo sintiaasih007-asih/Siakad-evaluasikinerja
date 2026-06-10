@@ -291,17 +291,19 @@
             <ul x-show="walikelasOpen && open" x-transition class="ml-7 mt-2 space-y-1">
 
                  <li>
-                    <a href="/evaluasi-bulanan"
-                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700">
+                    <a href="{{ route('evaluasi.bulanan') }}"
+                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700
+                               {{ request()->routeIs('evaluasi.bulanan') ? 'bg-slate-700 text-white' : '' }}">
                         <i data-lucide="calendar-check-2" class="w-4 h-4"></i>
                         <span>Evaluasi Bulanan</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="/hasil-evaluasi-semesteran"
-                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700">
-                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <a href="{{ route('evaluasi.semesteran') }}"
+                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700
+                               {{ request()->routeIs('evaluasi.semesteran') ? 'bg-slate-700 text-white' : '' }}">
+                        <i data-lucide="book-marked" class="w-4 h-4"></i>
                         <span>Evaluasi Semesteran</span>
                     </a>
                 </li>
@@ -411,17 +413,19 @@
             <ul x-show="walikelasOpen && open" x-transition class="ml-7 mt-2 space-y-1">
 
                  <li>
-                    <a href="/evaluasi-bulanan"
-                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700">
+                    <a href="{{ route('evaluasi.bulanan') }}"
+                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700
+                               {{ request()->routeIs('evaluasi.bulanan') ? 'bg-slate-700 text-white' : '' }}">
                         <i data-lucide="calendar-check-2" class="w-4 h-4"></i>
                         <span>Evaluasi Bulanan</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="/hasil-evaluasi-semesteran"
-                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700">
-                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <a href="{{ route('evaluasi.semesteran') }}"
+                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700
+                               {{ request()->routeIs('evaluasi.semesteran') ? 'bg-slate-700 text-white' : '' }}">
+                        <i data-lucide="book-marked" class="w-4 h-4"></i>
                         <span>Evaluasi Semesteran</span>
                     </a>
                 </li>
@@ -459,16 +463,18 @@
                 </li>
 
                 <li>
-                    <a href="/rekap-nilai-kelas"
-                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700">
-                        <i data-lucide="file-bar-chart" class="w-4 h-4"></i>
-                        <span>Rekap Nilai Kelas</span>
+                    <a href="{{ route('rekap.nilai.kelas') }}"
+                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700
+                               {{ request()->routeIs('rekap.nilai.kelas') ? 'bg-slate-700 text-white' : '' }}">
+                        <i data-lucide="monitor-check" class="w-4 h-4"></i>
+                        <span>Monitoring Kelas</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="/rekap-evaluasi-kelas"
-                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700">
+                    <a href="{{ route('rekap.evaluasi.kelas') }}"
+                        class="flex items-center gap-2 p-2 rounded hover:bg-slate-700
+                               {{ request()->routeIs('rekap.evaluasi.kelas') ? 'bg-slate-700 text-white' : '' }}">
                         <i data-lucide="clipboard-list" class="w-4 h-4"></i>
                         <span>Rekap Evaluasi Kelas</span>
                     </a>

@@ -2,7 +2,7 @@
 
     <x-page-header
         title="Evaluasi Bulanan"
-        subtitle="Rekap perkembangan akademik siswa per bulan"
+        subtitle="Rekap perkembangan akademik siswa per bulan menggunakan Fuzzy Logic"
     />
 
     {{-- ── AKSES DITUTUP ───────────────────────────────────────────────── --}}
@@ -29,7 +29,7 @@
     {{-- ── HEADER INFO ─────────────────────────────────────────────────── --}}
     <div class="bg-gradient-to-r from-teal-700 to-emerald-600 rounded-2xl p-6 mb-6 flex items-center justify-between shadow-lg">
         <div>
-            <p class="text-teal-100 text-xs font-semibold uppercase tracking-widest mb-1">Sistem Fuzzy Scoring</p>
+            <p class="text-teal-100 text-xs font-semibold uppercase tracking-widest mb-1">Sistem Fuzzy Logic — Trapesium Membership</p>
             <h2 class="text-xl font-bold text-white">Evaluasi Bulanan</h2>
             <p class="text-teal-100 text-sm mt-1">
                 Tahun Ajaran:
@@ -39,16 +39,16 @@
         </div>
         <div class="hidden md:flex flex-col items-end gap-1 text-xs text-teal-100">
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-teal-300"></span>Nilai Akademik (40%)
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-300"></span>Nilai Akademik (bobot 40%)
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-300"></span>Absensi (30%)
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-300"></span>Absensi (bobot 30%)
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-cyan-300"></span>Sikap (15%)
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-300"></span>Sikap (bobot 15%)
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-lime-300"></span>Disiplin (15%)
+                <span class="w-2.5 h-2.5 rounded-full bg-lime-300"></span>Disiplin (bobot 15%)
             </div>
         </div>
     </div>
@@ -71,8 +71,7 @@
                 {{-- Mata Pelajaran --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                        Mata Pelajaran
-                        <span class="text-red-400">*</span>
+                        Mata Pelajaran <span class="text-red-400">*</span>
                     </label>
                     <select name="jadwal_id"
                         class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
@@ -89,8 +88,7 @@
                 {{-- Bulan --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                        Bulan
-                        <span class="text-red-400">*</span>
+                        Bulan <span class="text-red-400">*</span>
                     </label>
                     <select name="bulan"
                         class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
@@ -101,11 +99,10 @@
                     </select>
                 </div>
 
-                {{-- Kelas (hanya kelas yang diampu) --}}
+                {{-- Kelas --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                        Kelas
-                        <span class="text-red-400">*</span>
+                        Kelas <span class="text-red-400">*</span>
                     </label>
                     <select name="kelas_id"
                         class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
@@ -139,10 +136,9 @@
 
     </div>
 
-    {{-- ── TABEL HASIL (kondisional) ────────────────────────────────────── --}}
+    {{-- ── TABEL HASIL ──────────────────────────────────────────────────── --}}
     @if(!$filtered)
 
-    {{-- Belum filter --}}
     <div class="bg-white rounded-2xl shadow-sm border p-16 text-center">
         <div class="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-teal-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -158,10 +154,9 @@
 
     @else
 
-    {{-- Hasil sudah difilter --}}
     @php
         $namaBulanTerpilih = ['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'][$bulan] ?? $bulan;
-        $jadwalTerpilih = $jadwals->firstWhere('id', $jadwalId);
+        $jadwalTerpilih    = $jadwals->firstWhere('id', $jadwalId);
     @endphp
 
     <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
@@ -181,12 +176,12 @@
             <div class="flex items-center gap-3 text-xs text-slate-300">
                 <span>{{ count($data) }} siswa</span>
                 <span class="bg-teal-500/20 text-teal-300 px-2.5 py-1 rounded-full font-semibold">
-                    Ranking Otomatis
+                    Fuzzy Ranking
                 </span>
             </div>
         </div>
 
-        {{-- Rekap mini --}}
+        {{-- Distribusi kategori --}}
         @if(count($data))
         @php
             $distrib = collect($data)->groupBy('kategori')->map->count();
@@ -210,19 +205,29 @@
         </div>
         @endif
 
-        {{-- Tabel --}}
+        {{-- Tabel utama --}}
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-100 border-b border-slate-200">
                     <tr>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase w-12">Rank</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase">Nama Siswa</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Nilai</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Absensi</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Sikap</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Disiplin</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Skor</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Kategori</th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase w-12">Rank</th>
+                        <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase">Nama Siswa</th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                            Nilai<br><span class="font-normal normal-case text-slate-400">40%</span>
+                        </th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                            Absensi<br><span class="font-normal normal-case text-slate-400">30%</span>
+                        </th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                            Sikap<br><span class="font-normal normal-case text-slate-400">15%</span>
+                        </th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                            Disiplin<br><span class="font-normal normal-case text-slate-400">15%</span>
+                        </th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                            Skor Fuzzy<br><span class="font-normal normal-case text-slate-400">0–100</span>
+                        </th>
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">Kategori</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -240,35 +245,58 @@
                             'Perlu Bimbingan' => 'bg-amber-100 text-amber-700 border border-amber-200',
                             default           => 'bg-rose-100 text-rose-700 border border-rose-200',
                         };
+                        $skorColor = match(true) {
+                            $item['skor'] >= 85 => 'text-emerald-600',
+                            $item['skor'] >= 70 => 'text-blue-600',
+                            $item['skor'] >= 55 => 'text-amber-600',
+                            default             => 'text-rose-600',
+                        };
                     @endphp
                     <tr class="hover:bg-slate-50 transition {{ $i < 3 ? 'font-medium' : '' }}">
-                        <td class="px-5 py-3.5 text-center">
+                        <td class="px-4 py-3.5 text-center">
                             <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold {{ $rankBg }}">
                                 {{ $i + 1 }}
                             </span>
                         </td>
-                        <td class="px-5 py-3.5">
+                        <td class="px-4 py-3.5">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-700 text-xs font-bold flex items-center justify-center shrink-0">
-                                    {{ strtoupper(substr($item['nama'],0,1)) }}
+                                    {{ strtoupper(substr($item['nama'], 0, 1)) }}
                                 </div>
-                                <span class="text-slate-800">{{ $item['nama'] }}</span>
+                                <div>
+                                    <span class="text-slate-800">{{ $item['nama'] }}</span>
+                                    @if(!$item['ada_data'])
+                                        <span class="ml-1 text-[10px] text-amber-500 font-medium">(belum ada data)</span>
+                                    @endif
+                                </div>
                             </div>
                         </td>
-                        <td class="px-5 py-3.5 text-center font-mono font-semibold text-indigo-700">
-                            {{ $item['nilai'] }}
+                        {{-- Nilai --}}
+                        <td class="px-4 py-3.5 text-center">
+                            <div class="font-mono font-semibold text-indigo-700">{{ $item['nilai'] }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_nilai'] }}</div>
                         </td>
-                        <td class="px-5 py-3.5 text-center">
-                            <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold font-mono">
-                                {{ $item['absensi'] }}%
-                            </span>
+                        {{-- Absensi --}}
+                        <td class="px-4 py-3.5 text-center">
+                            <div class="font-mono font-semibold text-teal-700">{{ $item['absensi'] }}%</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_absensi'] }}</div>
                         </td>
-                        <td class="px-5 py-3.5 text-center font-mono text-slate-700">{{ $item['sikap'] }}</td>
-                        <td class="px-5 py-3.5 text-center font-mono text-slate-700">{{ $item['disiplin'] }}</td>
-                        <td class="px-5 py-3.5 text-center">
-                            <span class="text-teal-700 font-bold font-mono text-base">{{ $item['skor'] }}</span>
+                        {{-- Sikap --}}
+                        <td class="px-4 py-3.5 text-center">
+                            <div class="font-mono text-slate-700">{{ $item['sikap'] }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_sikap'] }}</div>
                         </td>
-                        <td class="px-5 py-3.5 text-center">
+                        {{-- Disiplin --}}
+                        <td class="px-4 py-3.5 text-center">
+                            <div class="font-mono text-slate-700">{{ $item['disiplin'] }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_disiplin'] }}</div>
+                        </td>
+                        {{-- Skor Fuzzy --}}
+                        <td class="px-4 py-3.5 text-center">
+                            <span class="text-lg font-bold font-mono {{ $skorColor }}">{{ $item['skor'] }}</span>
+                        </td>
+                        {{-- Kategori --}}
+                        <td class="px-4 py-3.5 text-center">
                             <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $katBadge }}">
                                 {{ $item['kategori'] }}
                             </span>
@@ -292,14 +320,28 @@
             </table>
         </div>
 
-        {{-- Keterangan Fuzzy --}}
+        {{-- Keterangan Fuzzy Logic --}}
         @if(count($data))
-        <div class="px-6 py-4 bg-slate-50 border-t flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
-            <span class="font-semibold text-slate-600">Formula Fuzzy:</span>
-            <span>Nilai×40%</span>
-            <span>+ Absensi×30%</span>
-            <span>+ Sikap×15%</span>
-            <span>+ Disiplin×15%</span>
+        <div class="px-6 py-4 bg-slate-50 border-t">
+            <div class="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-500 mb-2">
+                <span class="font-semibold text-slate-600">Metode Fuzzy Logic:</span>
+                <span>Membership trapesium (Rendah: 0–55, Sedang: 40–80, Tinggi: 70–100)</span>
+                <span>· Defuzzifikasi centroid berbobot</span>
+            </div>
+            <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+                <span class="font-semibold text-slate-600">Agregasi bobot:</span>
+                <span>Nilai×40% + Absensi×30% + Sikap×15% + Disiplin×15%</span>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mt-2">
+                <span class="font-semibold text-slate-600">Kategori:</span>
+                <span class="text-emerald-600 font-medium">≥85 Sangat Baik</span>
+                <span class="text-blue-600 font-medium">≥70 Baik</span>
+                <span class="text-amber-600 font-medium">≥55 Perlu Bimbingan</span>
+                <span class="text-rose-600 font-medium">&lt;55 Perlu Pembinaan</span>
+            </div>
+            <div class="mt-2 text-[11px] text-slate-400">
+                μ = derajat keanggotaan fuzzy (0.0000–1.0000), menunjukkan seberapa "baik" performa tiap komponen secara fuzzy.
+            </div>
         </div>
         @endif
 

@@ -137,13 +137,26 @@ class AbsensiController extends Controller
                 'tanggal'   => 'required|date',
             ]);
 
+            $tanggal = Carbon::parse($request->tanggal);
+
+            // Nama bulan dalam Bahasa Indonesia (konsisten dengan NilaiController/SikapController)
+            $namaBulan = [
+                1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',
+                5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',
+                9=>'September',10=>'Oktober',11=>'November',12=>'Desember'
+            ][$tanggal->month];
+
             $absensi = Absensi::updateOrCreate(
                 [
                     'jadwal_id' => $request->jadwal_id,
                     'tanggal'   => $request->tanggal,
                 ],
                 [
-                    'pertemuan' => $request->pertemuan ?? null,
+                    'guru_id'      => Auth::user()->guru_id,
+                    'pertemuan'    => $request->pertemuan ?? null,
+                    'bulan'        => $namaBulan,
+                    'semester'     => $tanggal->month <= 6 ? 'Genap' : 'Ganjil',
+                    'tahun_ajaran' => $tanggal->year . '/' . ($tanggal->year + 1),
                 ]
             );
 

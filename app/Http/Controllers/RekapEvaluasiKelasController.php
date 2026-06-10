@@ -9,169 +9,152 @@ use App\Services\FuzzyMamdaniService;
 
 class RekapEvaluasiKelasController extends Controller
 {
-    protected $fuzzy;
+    protected FuzzyMamdaniService $fuzzy;
 
     public function __construct(FuzzyMamdaniService $fuzzy)
     {
-
         $this->fuzzy = $fuzzy;
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // NAMA BULAN (nomor → teks Indonesia)
+    // ─────────────────────────────────────────────────────────────────────────
+    private const BULAN_MAP = [
+        '01' => 'Januari',  '02' => 'Februari', '03' => 'Maret',
+        '04' => 'April',    '05' => 'Mei',       '06' => 'Juni',
+        '07' => 'Juli',     '08' => 'Agustus',   '09' => 'September',
+        '10' => 'Oktober',  '11' => 'November',  '12' => 'Desember',
+    ];
+
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user   = Auth::user();
+        $guruId = $user->guru_id;
 
-        // =========================
-        // TAHUN AJARAN AKTIF (WAJIB FILTER)
-        // =========================
+        // ── Tahun ajaran aktif ────────────────────────────────────────────
         $tahun = DB::table('tahun_ajarans')
             ->where('is_active', 1)
             ->first();
 
-        if (!$tahun) {
+        // ── Kelas yang diwali-kelasi guru yang login ──────────────────────
+        $kelas = null;
+        if ($guruId) {
+            $kelas = DB::table('kelas')
+                ->where('guru_id', $guruId)
+                ->first();
+        }
+
+        // ── Filter bulan (default: bulan berjalan) ────────────────────────
+        $bulan     = $request->bulan ?? date('m');
+        $namaBulan = self::BULAN_MAP[$bulan] ?? date('F');
+        $tahunStr  = $tahun->tahun ?? '';
+
+        // ── Data kosong jika tidak ada kelas atau tahun ajaran ────────────
+        $data      = collect();
+        $filtered  = $request->has('bulan');
+
+        if (!$kelas || !$tahun) {
             return view('rekap-evaluasi-kelas.index', [
-                'kelas' => null,
-                'tahun' => null,
-                'bulan' => null,
-                'data' => collect()
+                'kelas'     => $kelas,
+                'tahun'     => $tahun,
+                'bulan'     => $bulan,
+                'namaBulan' => $namaBulan,
+                'data'      => $data,
+                'filtered'  => $filtered,
             ]);
         }
 
-        // =========================
-        // BULAN FILTER (DEFAULT BULAN INI)
-        // =========================
-        $bulan = $request->bulan ?? date('m');
-
-        $bulanList = [
-            '01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April',
-            '05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus',
-            '09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'
-        ];
-
-        $bulanText = $bulanList[$bulan] ?? date('F');
-
-        // =========================
-        // KELAS WALI KELAS
-        // =========================
-        $kelas = DB::table('kelas')
-            ->where('guru_id', $user->guru_id)
-            ->first();
-
-        if (!$kelas) {
-            return view('rekap-evaluasi-kelas.index', [
-                'kelas' => null,
-                'tahun' => $tahun,
-                'bulan' => $bulan,
-                'data' => collect()
-            ]);
-        }
-
-        // =========================
-        // AMBIL SISWA SEKALI (OPTIMASI)
-        // =========================
+        // ── Ambil semua siswa di kelas ini ────────────────────────────────
         $siswas = DB::table('siswas')
             ->where('kelas_id', $kelas->id)
             ->orderBy('nama')
             ->get();
 
-        $data = collect();
+        // ── Ambil semua jadwal di kelas ini (dari semua guru) ─────────────
+        // Nilai, sikap, dan disiplin diakumulasi dari SEMUA jadwal di kelas,
+        // karena wali kelas perlu gambaran menyeluruh performa tiap siswa.
+        $jadwalIds = DB::table('jadwals')
+            ->where('kelas_id', $kelas->id)
+            ->pluck('id');
 
         foreach ($siswas as $siswa) {
 
-            // =========================
-            // NILAI (AVG)
-            // =========================
-            $nilai = DB::table('nilais')
-                ->where('siswa_id', $siswa->id)
-                ->where('tahun_ajaran', $tahun->tahun)
-                ->where('semester', $tahun->semester)
-                ->where('bulan', $bulanText)
+            // ── 1. NILAI AKADEMIK (rata-rata semua mapel bulan ini) ───────
+            $nilaiAkademik = DB::table('nilais')
+                ->where('siswa_id',     $siswa->id)
+                ->whereIn('jadwal_id',  $jadwalIds)
+                ->where('bulan',        $namaBulan)
+                ->where('tahun_ajaran', $tahunStr)
                 ->avg('nilai') ?? 0;
 
-            // =========================
-            // ABSENSI %
-            // =========================
-            $totalAbsensi = DB::table('absensi_details as d')
+            // ── 2. ABSENSI (% kehadiran dari semua pertemuan bulan ini) ───
+            $totalPertemuan = DB::table('absensi_details as d')
                 ->join('absensis as a', 'a.id', '=', 'd.absensi_id')
-                ->where('d.siswa_id', $siswa->id)
-                ->where('a.tahun_ajaran', $tahun->tahun)
-                ->where('a.semester', $tahun->semester)
-                ->where('a.bulan', $bulanText)
+                ->where('d.siswa_id',    $siswa->id)
+                ->whereIn('a.jadwal_id', $jadwalIds)
+                ->where('a.bulan',       $namaBulan)
+                ->where('a.tahun_ajaran', $tahunStr)
                 ->count();
 
-            $hadir = DB::table('absensi_details as d')
+            $hadirCount = DB::table('absensi_details as d')
                 ->join('absensis as a', 'a.id', '=', 'd.absensi_id')
-                ->where('d.siswa_id', $siswa->id)
-                ->where('d.status', 'hadir')
-                ->where('a.tahun_ajaran', $tahun->tahun)
-                ->where('a.semester', $tahun->semester)
-                ->where('a.bulan', $bulanText)
+                ->where('d.siswa_id',    $siswa->id)
+                ->where('d.status',      'hadir')
+                ->whereIn('a.jadwal_id', $jadwalIds)
+                ->where('a.bulan',       $namaBulan)
+                ->where('a.tahun_ajaran', $tahunStr)
                 ->count();
 
-            $absensi = $totalAbsensi > 0
-                ? round(($hadir / $totalAbsensi) * 100)
+            $persenHadir = $totalPertemuan > 0
+                ? round(($hadirCount / $totalPertemuan) * 100, 2)
                 : 0;
 
-            // =========================
-            // SIKAP
-            // =========================
-            $sikap = DB::table('sikaps')
-                ->where('siswa_id', $siswa->id)
-                ->where('tahun_ajaran', $tahun->tahun)
-                ->where('semester', $tahun->semester)
-                ->where('bulan', $bulanText)
+            // ── 3. SIKAP (rata-rata semua guru bulan ini) ─────────────────
+            $nilaiSikap = DB::table('sikaps')
+                ->where('siswa_id',     $siswa->id)
+                ->whereIn('jadwal_id',  $jadwalIds)
+                ->where('bulan',        $namaBulan)
+                ->where('tahun_ajaran', $tahunStr)
                 ->avg('nilai_sikap') ?? 0;
 
-            // =========================
-            // DISIPLIN
-            // =========================
-            $disiplin = DB::table('kedisiplinans')
-                ->where('siswa_id', $siswa->id)
-                ->where('tahun_ajaran', $tahun->tahun)
-                ->where('semester', $tahun->semester)
-                ->where('bulan', $bulanText)
+            // ── 4. KEDISIPLINAN (rata-rata semua guru bulan ini) ──────────
+            $nilaiDisiplin = DB::table('kedisiplinans')
+                ->where('siswa_id',     $siswa->id)
+                ->whereIn('jadwal_id',  $jadwalIds)
+                ->where('bulan',        $namaBulan)
+                ->where('tahun_ajaran', $tahunStr)
                 ->avg('nilai_disiplin') ?? 0;
 
-            // =========================
-            // FUZZY MAMDANI
-            // =========================
+            // ── 5. FUZZY MAMDANI (service yang sudah ada) ─────────────────
             $hasil = $this->fuzzy->hitung(
-                $nilai,
-                $absensi,
-                $sikap,
-                $disiplin
+                (float) $nilaiAkademik,
+                (float) $persenHadir,
+                (float) $nilaiSikap,
+                (float) $nilaiDisiplin
             );
 
-            // =========================
-            // PUSH DATA
-            // =========================
+            $adaData = ($nilaiAkademik > 0 || $totalPertemuan > 0
+                     || $nilaiSikap > 0    || $nilaiDisiplin > 0);
+
             $data->push([
                 'id'       => $siswa->id,
-                'nis'      => $siswa->nis,
+                'nis'      => $siswa->nis ?? '-',
                 'nama'     => $siswa->nama,
-                'nilai'    => round($nilai),
-                'absensi'  => $absensi,
-                'sikap'    => round($sikap),
-                'disiplin' => round($disiplin),
-
-                'hasil'    => $hasil['skor'] ?? 0,
+                'nilai'    => round($nilaiAkademik, 2),
+                'absensi'  => round($persenHadir,   2),
+                'sikap'    => round($nilaiSikap,     2),
+                'disiplin' => round($nilaiDisiplin,  2),
+                'skor'     => $hasil['skor']     ?? 0,
                 'kategori' => $hasil['kategori'] ?? 'Perlu Pembinaan',
-                'detail'   => $hasil['detail'] ?? [],
+                'ada_data' => $adaData,
             ]);
         }
 
-        // =========================
-        // RANKING AMAN (JIKA SEMUA 0 TETAP URUT STABIL)
-        // =========================
-        $data = $data->sortByDesc(function ($item) {
-            return $item['hasil'] ?? 0;
-        })->values();
+        // ── Urutkan berdasarkan skor tertinggi ────────────────────────────
+        $data = $data->sortByDesc('skor')->values();
 
-        return view('rekap-evaluasi-kelas.index', [
-            'kelas' => $kelas,
-            'tahun' => $tahun,
-            'bulan' => $bulan,
-            'data'  => $data
-        ]);
+        return view('rekap-evaluasi-kelas.index', compact(
+            'kelas', 'tahun', 'bulan', 'namaBulan', 'data', 'filtered'
+        ));
     }
 }
