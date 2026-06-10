@@ -1,11 +1,8 @@
-<div class="mb-6">
-
-    <h1 class="text-2xl font-semibold text-gray-800">
+<div class="mb-5">
+    <h1 class="text-[1.375rem] font-bold text-slate-800 leading-tight tracking-tight">
         {{ $title }}
     </h1>
-
-    <p class="text-sm text-gray-500 mt-1">
-        {{ $subtitle }}
-    </p>
-
+    @if(isset($subtitle) && $subtitle)
+    <p class="text-sm text-slate-500 mt-0.5 font-normal">{{ $subtitle }}</p>
+    @endif
 </div>

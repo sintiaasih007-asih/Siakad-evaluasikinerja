@@ -1,19 +1,202 @@
+/* ── Google Font Inter diload via app.blade.php head ── */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
-/* Hide scrollbar Chrome, Safari, Edge */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
+@layer base {
+    html { font-family: 'Inter', 'Figtree', sans-serif; }
+    body { @apply bg-slate-50 text-slate-800; }
+    /* Smooth scrolling */
+    * { scroll-behavior: smooth; }
 }
 
-/* Hide scrollbar Firefox */
-.scrollbar-hide {
-    scrollbar-width: none;
+/* ── Scrollbar tipis ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ══ KOMPONEN DESAIN SISTEM ══════════════════════════════════════ */
+
+@layer components {
+
+    /* ── Kartu standar ── */
+    .card {
+        @apply bg-white rounded-2xl border border-slate-200 shadow-sm;
+    }
+    .card-header {
+        @apply px-5 py-4 border-b border-slate-100 flex items-center justify-between;
+    }
+    .card-body {
+        @apply p-5;
+    }
+
+    /* ── Stat card ── */
+    .stat-card {
+        @apply bg-white rounded-2xl border border-slate-200 shadow-sm p-5
+               hover:shadow-md hover:border-slate-300 transition-all duration-200;
+    }
+    .stat-card-icon {
+        @apply w-11 h-11 rounded-xl flex items-center justify-center shrink-0;
+    }
+    .stat-card-value {
+        @apply text-2xl font-bold leading-none mt-1;
+    }
+    .stat-card-label {
+        @apply text-xs font-semibold text-slate-500 uppercase tracking-wide;
+    }
+
+    /* ── Tombol primer ── */
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2
+               bg-blue-800 hover:bg-blue-900 text-white
+               text-sm font-semibold px-4 py-2.5 rounded-xl
+               transition-all duration-200 shadow-sm hover:shadow
+               active:scale-95;
+    }
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2
+               border border-slate-300 hover:border-slate-400
+               bg-white hover:bg-slate-50 text-slate-700
+               text-sm font-semibold px-4 py-2.5 rounded-xl
+               transition-all duration-200;
+    }
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2
+               bg-red-600 hover:bg-red-700 text-white
+               text-sm font-semibold px-4 py-2.5 rounded-xl
+               transition-all duration-200;
+    }
+
+    /* ── Badge status ── */
+    .badge { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold; }
+    .badge-success { @apply bg-emerald-100 text-emerald-700; }
+    .badge-warning { @apply bg-amber-100 text-amber-700; }
+    .badge-danger  { @apply bg-rose-100 text-rose-700; }
+    .badge-info    { @apply bg-blue-100 text-blue-700; }
+    .badge-neutral { @apply bg-slate-100 text-slate-600; }
+
+    /* ── Banner hero halaman ── */
+    .page-banner {
+        @apply relative overflow-hidden rounded-2xl p-5 lg:p-6 mb-6 shadow-sm;
+    }
+
+    /* ── Form input standar ── */
+    .form-input {
+        @apply w-full rounded-xl border-slate-300 text-sm
+               focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+               transition-colors duration-150;
+    }
+    .form-label {
+        @apply block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5;
+    }
+
+    /* ── Tabel standar ── */
+    .table-header {
+        @apply bg-slate-50 border-b border-slate-200;
+    }
+    .table-header th {
+        @apply px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wide;
+    }
+    .table-row {
+        @apply border-b border-slate-100 hover:bg-slate-50/70 transition-colors duration-150;
+    }
+    .table-row td {
+        @apply px-4 py-3 text-sm text-slate-700;
+    }
+    .table-wrapper {
+        @apply overflow-x-auto -webkit-overflow-scrolling-touch;
+    }
+
+    /* ── Alert / Notifikasi ── */
+    .alert-success {
+        @apply flex items-center gap-3 bg-emerald-50 border border-emerald-200
+               text-emerald-700 px-4 py-3 rounded-xl text-sm;
+    }
+    .alert-warning {
+        @apply flex items-center gap-3 bg-amber-50 border border-amber-200
+               text-amber-700 px-4 py-3 rounded-xl text-sm;
+    }
+    .alert-danger {
+        @apply flex items-center gap-3 bg-rose-50 border border-rose-200
+               text-rose-700 px-4 py-3 rounded-xl text-sm;
+    }
+
+    /* ── Sidebar nav item ── */
+    .nav-item {
+        @apply flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm
+               font-medium text-slate-300 hover:bg-white/10 hover:text-white
+               transition-all duration-150;
+    }
+    .nav-item.active {
+        @apply bg-white/15 text-white font-semibold;
+    }
+    .nav-section {
+        @apply text-[10px] font-bold uppercase tracking-widest text-slate-500
+               px-3 pt-5 pb-1.5;
+    }
+
 }
 
-/* Hide scrollbar IE & Edge lama */
-.scrollbar-hide {
-    -ms-overflow-style: none;
+/* ══ RESPONSIVE ══════════════════════════════════════════════════ */
+
+/* Tabel scroll di mobile */
+.overflow-x-auto { -webkit-overflow-scrolling: touch; }
+
+/* Sembunyikan kolom tidak penting di mobile */
+@media (max-width: 767px) {
+    .hide-mobile { display: none !important; }
+    th, td { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    table { font-size: 0.75rem; }
+    .page-banner { border-radius: 1rem; }
 }
+
+/* Sidebar mobile selalu w-64 */
+@media (max-width: 1023px) {
+    aside { width: 256px !important; }
+}
+
+/* Grid responsive */
+@media (max-width: 640px) {
+    .grid.grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid.grid-cols-3 { grid-template-columns: repeat(1, 1fr); }
+    /* Modal tidak overflow */
+    .modal-content { max-width: calc(100vw - 1.5rem) !important; }
+}
+
+/* ══ ANIMASI ══════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.3s ease-out both; }
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.slide-in { animation: slideIn 0.25s ease-out both; }
+
+/* ══ UTILITIES TAMBAHAN ══════════════════════════════════════════ */
+
+.text-balance { text-wrap: balance; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Gradient teks */
+.text-gradient {
+    background: linear-gradient(135deg, #1e40af, #0f766e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Shadow kartu yang lebih halus */
+.shadow-card { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07); }
+.shadow-card-hover { box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.08); }
+
+body { overflow-x: hidden; }

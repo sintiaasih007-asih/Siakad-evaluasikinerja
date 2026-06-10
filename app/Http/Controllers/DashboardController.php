@@ -290,114 +290,66 @@ class DashboardController extends Controller
 |--------------------------------------------------------------------------
 */
 
-public function ortu()
-{
-    $user = Auth::user();
+    public function ortu()
+    {
+        $user = Auth::user();
 
-    /*
-    |--------------------------------------------------------------------------
-    | AMBIL DATA SISWA
-    |--------------------------------------------------------------------------
-    */
+        $siswa = Siswa::with('kelas')->find($user->siswa_id);
 
-    $siswa = Siswa::with('kelas')
-        ->find($user->siswa_id);
+        if (!$siswa) {
+            return view('dashboard.ortu', [
+                'siswa'           => null,
+                'rataNilai'       => 0,
+                'persentaseHadir' => 0,
+                'hadir'           => 0,
+                'izin'            => 0,
+                'sakit'           => 0,
+                'alpha'           => 0,
+                'waliKelas'       => null,
+                'tahunAktif'      => null,
+            ]);
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | JIKA DATA SISWA TIDAK ADA
-    |--------------------------------------------------------------------------
-    */
+        $tahunAktif = \DB::table('tahun_ajarans')->where('is_active', 1)->first();
 
-    if (!$siswa) {
+        // ── Wali kelas dari kelas siswa ───────────────────────────────────
+        $waliKelas = null;
+        if ($siswa->kelas_id) {
+            $waliKelas = \DB::table('kelas as k')
+                ->join('gurus as g', 'g.id', '=', 'k.guru_id')
+                ->where('k.id', $siswa->kelas_id)
+                ->select('g.nama as nama_guru', 'k.nama_kelas')
+                ->first();
+        }
 
-        return view('dashboard.ortu', [
-            'siswa'             => null,
-            'nilais'            => collect(),
-            'absensis'          => collect(),
-            'rataNilai'         => 0,
-            'persentaseHadir'   => 0,
-            'hadir'             => 0,
-            'izin'              => 0,
-            'sakit'             => 0,
-        ]);
+        // ── Data nilai ────────────────────────────────────────────────────
+        $nilais = Nilai::where('siswa_id', $siswa->id)->latest()->get();
+        $rataNilai = round($nilais->avg('nilai') ?? 0, 1);
+
+        // ── Data absensi ──────────────────────────────────────────────────
+        $absensis = \DB::table('absensi_details')
+            ->join('absensis', 'absensi_details.absensi_id', '=', 'absensis.id')
+            ->where('absensi_details.siswa_id', $siswa->id)
+            ->select('absensi_details.status', 'absensis.tanggal',
+                     'absensis.pertemuan', 'absensis.bulan', 'absensis.tahun_ajaran')
+            ->latest('absensis.tanggal')
+            ->get();
+
+        $hadir           = $absensis->where('status', 'hadir')->count();
+        $izin            = $absensis->where('status', 'izin')->count();
+        $sakit           = $absensis->where('status', 'sakit')->count();
+        $alpha           = $absensis->where('status', 'alpha')->count();
+        $totalAbsensi    = $absensis->count();
+        $persentaseHadir = $totalAbsensi > 0
+            ? round(($hadir / $totalAbsensi) * 100)
+            : 0;
+
+        return view('dashboard.ortu', compact(
+            'siswa', 'nilais', 'absensis', 'rataNilai',
+            'persentaseHadir', 'hadir', 'izin', 'sakit', 'alpha',
+            'waliKelas', 'tahunAktif'
+        ));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA NILAI
-    |--------------------------------------------------------------------------
-    */
-
-    $nilais = Nilai::where('siswa_id', $siswa->id)
-        ->latest()
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA ABSENSI
-    |--------------------------------------------------------------------------
-    */
-
-    $absensis = \DB::table('absensi_details')
-        ->join('absensis', 'absensi_details.absensi_id', '=', 'absensis.id')
-        ->where('absensi_details.siswa_id', $siswa->id)
-        ->select(
-            'absensi_details.status',
-            'absensis.tanggal',
-            'absensis.pertemuan',
-            'absensis.semester',
-            'absensis.tahun_ajaran'
-        )
-        ->latest('absensis.tanggal')
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | HITUNG NILAI
-    |--------------------------------------------------------------------------
-    */
-
-    $rataNilai = $nilais->avg('nilai') ?? 0;
-
-    /*
-    |--------------------------------------------------------------------------
-    | HITUNG ABSENSI
-    |--------------------------------------------------------------------------
-    */
-
-    $hadir = $absensis->where('status', 'hadir')->count();
-
-    $izin = $absensis->where('status', 'izin')->count();
-
-    $sakit = $absensis->where('status', 'sakit')->count();
-
-    $alpha = $absensis->where('status', 'alpha')->count();
-
-    $totalAbsensi = $absensis->count();
-
-    $persentaseHadir = $totalAbsensi > 0
-        ? round(($hadir / $totalAbsensi) * 100)
-        : 0;
-
-    /*
-    |--------------------------------------------------------------------------
-    | RETURN VIEW
-    |--------------------------------------------------------------------------
-    */
-
-    return view('dashboard.ortu', compact(
-        'siswa',
-        'nilais',
-        'absensis',
-        'rataNilai',
-        'persentaseHadir',
-        'hadir',
-        'izin',
-        'sakit',
-        'alpha'
-    ));
-}
 
     /*
     |--------------------------------------------------------------------------

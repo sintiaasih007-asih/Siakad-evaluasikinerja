@@ -218,10 +218,10 @@
                         <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
                             Absensi<br><span class="font-normal normal-case text-slate-400">30%</span>
                         </th>
-                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase hide-mobile">
                             Sikap<br><span class="font-normal normal-case text-slate-400">15%</span>
                         </th>
-                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
+                        <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase hide-mobile">
                             Disiplin<br><span class="font-normal normal-case text-slate-400">15%</span>
                         </th>
                         <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-500 uppercase">
@@ -274,20 +274,20 @@
                         {{-- Nilai --}}
                         <td class="px-4 py-3.5 text-center">
                             <div class="font-mono font-semibold text-indigo-700">{{ $item['nilai'] }}</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_nilai'] }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5 hide-mobile">μ={{ $item['mu_nilai'] }}</div>
                         </td>
                         {{-- Absensi --}}
                         <td class="px-4 py-3.5 text-center">
                             <div class="font-mono font-semibold text-teal-700">{{ $item['absensi'] }}%</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_absensi'] }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5 hide-mobile">μ={{ $item['mu_absensi'] }}</div>
                         </td>
                         {{-- Sikap --}}
-                        <td class="px-4 py-3.5 text-center">
+                        <td class="px-4 py-3.5 text-center hide-mobile">
                             <div class="font-mono text-slate-700">{{ $item['sikap'] }}</div>
                             <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_sikap'] }}</div>
                         </td>
                         {{-- Disiplin --}}
-                        <td class="px-4 py-3.5 text-center">
+                        <td class="px-4 py-3.5 text-center hide-mobile">
                             <div class="font-mono text-slate-700">{{ $item['disiplin'] }}</div>
                             <div class="text-[10px] text-slate-400 mt-0.5">μ={{ $item['mu_disiplin'] }}</div>
                         </td>

@@ -27,6 +27,9 @@ use App\Http\Controllers\OrangTua\NilaiAnakController;
 use App\Http\Controllers\Orangtua\AbsensiAnakController;
 use App\Http\Controllers\AbsensiGuruController;
 use App\Http\Controllers\Orangtua\PenilaianKarakterController;
+use App\Http\Controllers\OrangTua\PerkembanganAnakController;
+use App\Http\Controllers\OrangTua\EvaluasiBulananAnakController;
+use App\Http\Controllers\OrangTua\EvaluasiSemesteranAnakController;
 use App\Http\Controllers\Admin\LaporanAbsensiGuruController;
 use App\Http\Controllers\Admin\ProfileSekolahController;
 use App\Http\Controllers\Admin\QrAbsensiGuruController;
@@ -187,20 +190,20 @@ Route::prefix('orang-tua')
         Route::get('/nilai-anak', [NilaiAnakController::class, 'index'])
             ->name('orangtua.nilai');
 
-});
-
-Route::prefix('orang-tua')->middleware(['auth'])->group(function () {
-    Route::get('/absensi-anak', [AbsensiAnakController::class, 'index'])
-        ->name('orangtua.absensi');
-});
-
-
-Route::prefix('orang-tua')
-    ->middleware('auth')
-    ->group(function () {
+        Route::get('/absensi-anak', [AbsensiAnakController::class, 'index'])
+            ->name('orangtua.absensi');
 
         Route::get('/penilaian-karakter', [PenilaianKarakterController::class, 'index'])
             ->name('orangtua.karakter');
+
+        Route::get('/perkembangan-anak', [PerkembanganAnakController::class, 'index'])
+            ->name('orangtua.perkembangan');
+
+        Route::get('/evaluasi-bulanan', [EvaluasiBulananAnakController::class, 'index'])
+            ->name('orangtua.evaluasi.bulanan');
+
+        Route::get('/evaluasi-semesteran', [EvaluasiSemesteranAnakController::class, 'index'])
+            ->name('orangtua.evaluasi.semesteran');
 
 });
 
