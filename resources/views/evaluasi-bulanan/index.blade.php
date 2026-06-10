@@ -27,41 +27,27 @@
     @else
 
     {{-- ── HEADER INFO ─────────────────────────────────────────────────── --}}
-    <div class="bg-gradient-to-r from-teal-700 to-emerald-600 rounded-2xl p-6 mb-6 flex items-center justify-between shadow-lg">
+    <div class="rounded-2xl p-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm"
+         style="background:linear-gradient(135deg,#1e40af,#1d4ed8)">
         <div>
-            <p class="text-teal-100 text-xs font-semibold uppercase tracking-widest mb-1">Sistem Fuzzy Logic — Trapesium Membership</p>
-            <h2 class="text-xl font-bold text-white">Evaluasi Bulanan</h2>
-            <p class="text-teal-100 text-sm mt-1">
-                Tahun Ajaran:
-                <strong class="text-white">{{ $tahun->tahun ?? '-' }}</strong>
-                · Guru: <strong class="text-white">{{ auth()->user()->name }}</strong>
+            <p class="text-blue-200 text-[10px] font-bold uppercase tracking-widest mb-0.5">Sistem Fuzzy Logic</p>
+            <h2 class="text-lg font-bold text-white">Evaluasi Bulanan Siswa</h2>
+            <p class="text-blue-200 text-xs mt-0.5">
+                TA: <strong class="text-white">{{ $tahun->tahun ?? '-' }}</strong>
+                &nbsp;·&nbsp; {{ auth()->user()->name }}
             </p>
         </div>
-        <div class="hidden md:flex flex-col items-end gap-1 text-xs text-teal-100">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-teal-300"></span>Nilai Akademik (bobot 40%)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-300"></span>Absensi (bobot 30%)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-cyan-300"></span>Sikap (bobot 15%)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-lime-300"></span>Disiplin (bobot 15%)
-            </div>
+        <div class="hidden sm:flex flex-col items-end gap-1 text-[11px] text-blue-200">
+            <span>Nilai 40% · Absensi 30% · Sikap 15% · Disiplin 15%</span>
+            <span class="text-blue-300">Membership Trapesium · Centroid Defuzz</span>
         </div>
     </div>
 
-    {{-- ── FILTER CARD ──────────────────────────────────────────────────── --}}
-    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden mb-5">
 
-        <div class="px-6 py-4 bg-slate-50 border-b flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-            </svg>
-            <h3 class="text-sm font-bold text-slate-700">Filter Evaluasi</h3>
+        <div class="px-5 py-3.5 bg-slate-50 border-b flex items-center gap-2">
+            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+            <h3 class="text-sm font-semibold text-slate-700">Filter Evaluasi</h3>
             <span class="text-xs text-slate-400">— Pilih semua filter untuk menampilkan hasil</span>
         </div>
 
@@ -119,14 +105,12 @@
                 {{-- Tombol --}}
                 <div class="flex items-end gap-2">
                     <button type="submit"
-                        class="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110 3a7.5 7.5 0 016.65 13.65z"/>
-                        </svg>
+                        class="btn-primary flex-1">
+                        <i data-lucide="search" class="w-4 h-4"></i>
                         Tampilkan
                     </button>
                     <a href="{{ route('evaluasi.bulanan') }}"
-                        class="px-3 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-500 text-sm transition">
+                        class="btn-secondary px-3">
                         Reset
                     </a>
                 </div>

@@ -57,15 +57,13 @@
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
         {{-- Card Header --}}
-        <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 flex items-center gap-3">
-            <div class="bg-white/10 p-2 rounded-xl">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
+        <div class="px-6 py-4 flex items-center gap-3" style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
+            <div class="bg-white/15 p-2 rounded-xl">
+                <i data-lucide="pen-line" class="w-5 h-5 text-white"></i>
             </div>
             <div>
                 <h3 class="text-white font-bold text-sm">Form Input Nilai</h3>
-                <p class="text-slate-300 text-xs">{{ $siswas->count() }} siswa</p>
+                <p class="text-blue-200 text-xs">{{ $siswas->count() }} siswa</p>
             </div>
         </div>
 
@@ -136,19 +134,11 @@
 
             {{-- Actions --}}
             <div class="flex items-center justify-between mt-6 pt-5 border-t border-slate-100">
-                <a href="{{ route('nilai.index') }}"
-                    class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 hover:border-slate-400 px-4 py-2.5 rounded-xl transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
-                    Kembali
+                <a href="{{ route('nilai.index') }}" class="btn-secondary flex items-center gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
                 </a>
-                <button type="submit"
-                    class="inline-flex items-center gap-2 bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Simpan Nilai
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Nilai
                 </button>
             </div>
 

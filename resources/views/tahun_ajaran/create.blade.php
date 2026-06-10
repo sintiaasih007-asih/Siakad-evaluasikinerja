@@ -1,90 +1,45 @@
 <x-app-layout>
-
-    {{-- HEADER --}}
-    <x-page-header 
-        title="Tambah Tahun Ajaran" 
-        subtitle="Dashboard / Tahun Ajaran / Tambah Data" 
-    />
-
-    {{-- CARD --}}
-    <div class="bg-white rounded-xl shadow-sm border p-6 max-w-2xl">
-
-        <form action="{{ route('tahun-ajaran.store') }}" method="POST" class="space-y-5">
-            @csrf
-
-            {{-- TAHUN --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Tahun Ajaran
-                </label>
-                <input type="text" name="tahun"
-                    value="{{ old('tahun') }}"
-                    placeholder="Contoh: 2025/2026"
-                    class="w-full border-gray-300 rounded-lg shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-
-                @error('tahun')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
+    <x-page-header title="Tambah Tahun Ajaran" subtitle="Formulir penambahan tahun ajaran baru"/>
+    <div class="max-w-lg">
+        <div class="card overflow-hidden">
+            <div class="px-6 py-4" style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
+                <p class="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Formulir</p>
+                <h2 class="text-base font-bold text-white mt-0.5">Tahun Ajaran Baru</h2>
             </div>
-
-            {{-- SEMESTER --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Semester
-                </label>
-                <select name="semester"
-                    class="w-full border-gray-300 rounded-lg shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-
-                    <option value="">-- Pilih Semester --</option>
-                    <option value="ganjil" {{ old('semester') == 'ganjil' ? 'selected' : '' }}>
-                        Ganjil
-                    </option>
-                    <option value="genap" {{ old('semester') == 'genap' ? 'selected' : '' }}>
-                        Genap
-                    </option>
-                </select>
-
-                @error('semester')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- STATUS AKTIF --}}
-            <div class="flex items-center gap-3 pt-2">
-                <input type="checkbox" name="is_active" value="1"
-                    {{ old('is_active') ? 'checked' : '' }}
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-
-                <label class="text-sm text-gray-700">
-                    Jadikan sebagai Tahun Ajaran Aktif
-                </label>
-            </div>
-
-            {{-- INFO TAMBAHAN --}}
-            <div class="text-xs text-gray-400">
-                * Hanya satu tahun ajaran yang bisa aktif
-            </div>
-
-            {{-- BUTTON --}}
-            <div class="flex justify-end gap-2 pt-4">
-
-                <a href="{{ route('tahun-ajaran.index') }}"
-                   class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100">
-                    Batal
-                </a>
-
-                <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-sm transition">
-                    Simpan
-                </button>
-
-            </div>
-
-        </form>
-
+            <form action="{{ route('tahun-ajaran.store') }}" method="POST" class="p-6 space-y-5">
+                @csrf
+                <div>
+                    <label class="form-label">Tahun Ajaran</label>
+                    <input type="text" name="tahun" value="{{ old('tahun') }}" placeholder="2025/2026" class="form-input w-full">
+                    @error('tahun')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="form-label">Semester</label>
+                    <select name="semester" class="form-input w-full">
+                        <option value="">-- Pilih Semester --</option>
+                        <option value="ganjil" {{ old('semester')=='ganjil'?'selected':'' }}>Ganjil (Juli – Desember)</option>
+                        <option value="genap"  {{ old('semester')=='genap' ?'selected':'' }}>Genap (Januari – Juni)</option>
+                    </select>
+                    @error('semester')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="is_active" value="1" id="is_active"
+                        {{ old('is_active')?'checked':'' }}
+                        class="w-4 h-4 text-blue-700 border-slate-300 rounded focus:ring-blue-500">
+                    <label for="is_active" class="text-sm text-slate-700 font-medium cursor-pointer">
+                        Jadikan sebagai Tahun Ajaran Aktif
+                    </label>
+                </div>
+                <p class="text-xs text-slate-400">* Hanya satu tahun ajaran yang bisa aktif pada satu waktu.</p>
+                <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                    <a href="{{ route('tahun-ajaran.index') }}" class="btn-secondary flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
 </x-app-layout>
-

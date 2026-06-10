@@ -1,247 +1,154 @@
 <x-app-layout>
 
-    <div class="space-y-6">
-
-        {{-- ── WELCOME BANNER ───────────────────────────────────────────── --}}
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 p-7 shadow-xl">
-            <div class="absolute right-0 top-0 opacity-10 pointer-events-none">
-                <svg width="280" height="280" fill="none"><circle cx="140" cy="140" r="140" fill="white"/></svg>
+    {{-- ── WELCOME BANNER ─────────────────────────────────────────────── --}}
+    <div class="relative overflow-hidden rounded-2xl p-6 mb-6 shadow-sm"
+         style="background:linear-gradient(135deg,#1e3a5f 0%,#1e40af 60%,#1d4ed8 100%)">
+        <div class="absolute inset-0 opacity-[0.04]">
+            <svg width="100%" height="100%"><pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="white"/></pattern><rect width="100%" height="100%" fill="url(#dots)"/></svg>
+        </div>
+        <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <p class="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">
+                    {{ now()->translatedFormat('l, d F Y') }}
+                </p>
+                <h1 class="text-xl lg:text-2xl font-bold text-white">Selamat Datang, {{ Auth::user()->name }}</h1>
+                <p class="text-blue-200 text-sm mt-1">Kelola penilaian siswa dan pantau aktivitas mengajar.</p>
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <a href="{{ route('nilai.index') }}"
+                        class="bg-white text-blue-800 text-xs font-bold px-4 py-2 rounded-lg shadow-sm hover:bg-blue-50 transition">Input Nilai</a>
+                    <a href="{{ route('absensi.index') }}"
+                        class="bg-white/15 border border-white/25 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-white/25 transition">Absensi Siswa</a>
+                    <a href="{{ route('absensi-guru.index') }}"
+                        class="bg-white/15 border border-white/25 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-white/25 transition">Absensi Saya</a>
+                </div>
             </div>
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <div class="hidden lg:flex gap-3 shrink-0">
+                <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-right">
+                    <p class="text-blue-300 text-[10px] font-semibold uppercase tracking-wide">Jadwal Hari Ini</p>
+                    <p class="text-3xl font-bold text-white mt-0.5">{{ $jadwals->count() }}</p>
+                </div>
+                <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-right">
+                    <p class="text-blue-300 text-[10px] font-semibold uppercase tracking-wide">Siswa Diampu</p>
+                    <p class="text-3xl font-bold text-white mt-0.5">{{ $totalSiswa }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── STAT CARDS ──────────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        @foreach([
+            ['Jadwal Hari Ini', $jadwals->count(), $hariIni,           'calendar-days', 'bg-blue-100',  'text-blue-700'],
+            ['Siswa Diampu',    $totalSiswa,       'Semua kelas',      'users',         'bg-sky-100',   'text-sky-700'],
+            ['Absensi Dibuat',  $totalAbsensi,     'Total pertemuan',  'check-circle',  'bg-teal-100',  'text-teal-700'],
+            ['Nilai Diinput',   $totalNilai,       'Oleh Anda',        'pen-line',      'bg-amber-100', 'text-amber-700'],
+        ] as [$label, $val, $sub, $icon, $bg, $txt])
+        <div class="card p-5 hover:shadow-card-hover transition-shadow duration-200">
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="stat-card-label truncate">{{ $label }}</p>
+                    <p class="stat-card-value {{ $txt }}">{{ $val }}</p>
+                    <p class="text-[11px] text-slate-400 mt-1 truncate">{{ $sub }}</p>
+                </div>
+                <div class="stat-card-icon {{ $bg }} shrink-0">
+                    <i data-lucide="{{ $icon }}" class="w-5 h-5 {{ $txt }}"></i>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- ── JADWAL + SIDEBAR ────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+        {{-- Jadwal hari ini --}}
+        <div class="xl:col-span-2 card overflow-hidden">
+            <div class="card-header">
                 <div>
-                    <p class="text-indigo-200 text-sm font-medium">
-                        {{ now()->translatedFormat('l, d F Y') }}
-                    </p>
-                    <h1 class="text-2xl font-bold text-white mt-0.5">
-                        Selamat Datang, {{ Auth::user()->name }} 👋
-                    </h1>
-                    <p class="text-indigo-100 text-sm mt-1.5 max-w-lg">
-                        Berikut ringkasan aktivitas mengajar Anda hari ini.
-                    </p>
-                    <div class="flex flex-wrap gap-3 mt-5">
-                        <a href="{{ route('nilai.index') }}"
-                            class="bg-white text-indigo-700 text-sm font-bold px-5 py-2.5 rounded-xl shadow hover:scale-105 transition">
-                            Input Nilai
-                        </a>
-                        <a href="{{ route('absensi.index') }}"
-                            class="bg-white/15 border border-white/30 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-white/20 transition">
-                            Absensi Siswa
-                        </a>
-                        <a href="{{ route('absensi-guru.index') }}"
-                            class="bg-white/15 border border-white/30 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-white/20 transition">
-                            Absensi Saya
-                        </a>
-                    </div>
+                    <h3 class="text-sm font-bold text-slate-800">Jadwal Mengajar — {{ $hariIni }}</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">{{ now()->translatedFormat('d F Y') }}</p>
                 </div>
-                <div class="hidden lg:block shrink-0">
-                    <div class="bg-white/10 border border-white/15 rounded-2xl p-5 w-56 space-y-4">
-                        <div>
-                            <p class="text-indigo-200 text-xs font-semibold uppercase tracking-wide">Jadwal Hari Ini</p>
-                            <h3 class="text-4xl font-bold text-white mt-1">{{ $jadwals->count() }}</h3>
-                            <p class="text-indigo-200 text-xs">{{ $hariIni }}</p>
-                        </div>
-                        <div class="border-t border-white/15 pt-3">
-                            <p class="text-indigo-200 text-xs font-semibold uppercase tracking-wide">Siswa Diampu</p>
-                            <h4 class="text-2xl font-bold text-white mt-0.5">{{ $totalSiswa }}</h4>
-                        </div>
-                    </div>
+                @if($jadwals->isNotEmpty())
+                <span class="badge badge-info">{{ $jadwals->count() }} JP</span>
+                @endif
+            </div>
+            <div class="p-5">
+                @if($jadwals->isEmpty())
+                <div class="flex flex-col items-center py-10 text-slate-400">
+                    <i data-lucide="calendar-x" class="w-10 h-10 mb-2 opacity-40"></i>
+                    <p class="text-sm font-medium">Tidak ada jadwal hari {{ $hariIni }}</p>
+                    <p class="text-xs mt-1 text-slate-300">Nikmati hari Anda 😊</p>
                 </div>
+                @else
+                <div class="space-y-2.5">
+                    @foreach($jadwals as $j)
+                    @php
+                        $now = now();
+                        $mulai   = \Carbon\Carbon::today()->setTimeFromTimeString($j->jam_masuk);
+                        $selesai = \Carbon\Carbon::today()->setTimeFromTimeString($j->jam_selesai);
+                        $isActive   = $now->between($mulai, $selesai);
+                        $isFinished = $now->greaterThan($selesai);
+                    @endphp
+                    <div class="flex items-center gap-3.5 px-4 py-3.5 rounded-xl border transition
+                        {{ $isActive ? 'border-blue-200 bg-blue-50' : ($isFinished ? 'border-slate-100 bg-slate-50/60 opacity-60' : 'border-slate-100 hover:bg-slate-50') }}">
+                        <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 text-xs font-bold
+                            {{ $isActive ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600' }}">
+                            <span>{{ substr($j->jam_masuk,0,5) }}</span>
+                            <span class="text-[9px] font-normal opacity-70">{{ substr($j->jam_selesai,0,5) }}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-slate-800 text-sm truncate">{{ $j->mapel->nama_mapel ?? '-' }}</p>
+                            <p class="text-xs text-slate-500">Kelas {{ $j->kelas->nama_kelas ?? '-' }}</p>
+                        </div>
+                        @if($isActive)
+                        <span class="badge badge-success shrink-0">● Aktif</span>
+                        @elseif($isFinished)
+                        <span class="badge badge-neutral shrink-0">Selesai</span>
+                        @else
+                        <a href="{{ route('absensi.create', $j->id) }}" class="btn-primary py-1.5 px-3 text-xs shrink-0">Absensi</a>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+                @endif
             </div>
         </div>
 
-        {{-- ── STAT CARDS ────────────────────────────────────────────────── --}}
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-
-            {{-- Jadwal Hari Ini --}}
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Jadwal Hari Ini</p>
-                        <h3 class="text-3xl font-bold text-slate-800 mt-1">{{ $jadwals->count() }}</h3>
-                        <p class="text-xs text-slate-400 mt-1">{{ $hariIni }}</p>
+        {{-- Sidebar: Pengumuman + Agenda --}}
+        <div class="space-y-4">
+            <div class="card p-5">
+                <h3 class="text-sm font-bold text-slate-800 mb-3">Pengumuman</h3>
+                <div class="space-y-3">
+                    @forelse($pengumuman as $item)
+                    <div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                        <p class="text-sm font-semibold text-slate-700 line-clamp-1">{{ $item->judul }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ $item->isi }}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">{{ $item->created_at->diffForHumans() }}</p>
                     </div>
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
+                    @empty
+                    <p class="text-xs text-slate-400 text-center py-4">Belum ada pengumuman</p>
+                    @endforelse
                 </div>
             </div>
-
-            {{-- Total Siswa Diampu --}}
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Siswa Diampu</p>
-                        <h3 class="text-3xl font-bold text-sky-600 mt-1">{{ $totalSiswa }}</h3>
-                        <p class="text-xs text-slate-400 mt-1">Di semua kelas Anda</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-sky-100 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Total Absensi --}}
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Absensi Dibuat</p>
-                        <h3 class="text-3xl font-bold text-emerald-600 mt-1">{{ $totalAbsensi }}</h3>
-                        <p class="text-xs text-slate-400 mt-1">Total pertemuan</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Nilai Diinput --}}
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Nilai Diinput</p>
-                        <h3 class="text-3xl font-bold text-amber-600 mt-1">{{ $totalNilai }}</h3>
-                        <p class="text-xs text-slate-400 mt-1">Oleh Anda</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        {{-- ── JADWAL HARI INI + SIDEBAR ─────────────────────────────────── --}}
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-            {{-- Jadwal hari ini --}}
-            <div class="xl:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-
-                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-800">Jadwal Mengajar Hari Ini</h3>
-                        <p class="text-sm text-slate-500">{{ now()->translatedFormat('l, d F Y') }}</p>
-                    </div>
-                    @if($jadwals->isNotEmpty())
-                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-full">
-                            {{ $jadwals->count() }} JP
-                        </span>
-                    @endif
-                </div>
-
-                <div class="p-6">
-                    @if($jadwals->isEmpty())
-                        <div class="flex flex-col items-center justify-center py-12 text-slate-400">
-                            <svg class="w-14 h-14 mb-3 opacity-40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <p class="text-sm font-medium">Tidak ada jadwal mengajar hari {{ $hariIni }}</p>
-                            <p class="text-xs mt-1">Nikmati hari Anda 😊</p>
+            <div class="card p-5">
+                <h3 class="text-sm font-bold text-slate-800 mb-3">Agenda Sekolah</h3>
+                <div class="space-y-2.5">
+                    @forelse($agenda as $item)
+                    <div class="flex items-start gap-3">
+                        <div class="bg-blue-50 text-blue-700 rounded-lg p-2 text-center min-w-[40px] shrink-0">
+                            <div class="text-sm font-bold leading-none">{{ \Carbon\Carbon::parse($item->tanggal)->format('d') }}</div>
+                            <div class="text-[9px]">{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('M') }}</div>
                         </div>
-                    @else
-                        <div class="space-y-3">
-                            @foreach($jadwals as $j)
-                            @php
-                                $now    = now();
-                                $mulai  = \Carbon\Carbon::today()->setTimeFromTimeString($j->jam_masuk);
-                                $selesai= \Carbon\Carbon::today()->setTimeFromTimeString($j->jam_selesai);
-                                $isActive   = $now->between($mulai, $selesai);
-                                $isFinished = $now->greaterThan($selesai);
-                            @endphp
-                            <div class="flex items-center gap-4 p-4 rounded-2xl border
-                                {{ $isActive ? 'border-indigo-300 bg-indigo-50' : ($isFinished ? 'border-slate-100 bg-slate-50 opacity-70' : 'border-slate-100 hover:bg-slate-50') }}
-                                transition">
-
-                                {{-- Jam --}}
-                                <div class="w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 font-bold text-sm
-                                    {{ $isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700' }}">
-                                    <span>{{ substr($j->jam_masuk,0,5) }}</span>
-                                    <span class="text-[10px] font-normal opacity-70">–{{ substr($j->jam_selesai,0,5) }}</span>
-                                </div>
-
-                                {{-- Info --}}
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-semibold text-slate-800 truncate">
-                                        {{ $j->mapel->nama_mapel ?? '-' }}
-                                    </h4>
-                                    <p class="text-sm text-slate-500">
-                                        {{ $j->kelas->nama_kelas ?? '-' }}
-                                    </p>
-                                </div>
-
-                                {{-- Status badge --}}
-                                @if($isActive)
-                                    <span class="bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0">
-                                        Berlangsung
-                                    </span>
-                                @elseif($isFinished)
-                                    <span class="bg-slate-200 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0">
-                                        Selesai
-                                    </span>
-                                @else
-                                    <a href="{{ route('absensi.create', $j->id) }}"
-                                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 transition">
-                                        Isi Absensi
-                                    </a>
-                                @endif
-
-                            </div>
-                            @endforeach
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-700 line-clamp-1">{{ $item->judul }}</p>
+                            <p class="text-[10px] text-slate-500 line-clamp-1">{{ $item->deskripsi }}</p>
                         </div>
-                    @endif
-                </div>
-
-            </div>
-
-            {{-- Sidebar: Pengumuman + Agenda --}}
-            <div class="space-y-5">
-
-                {{-- Pengumuman --}}
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-                    <h3 class="text-base font-bold text-slate-800 mb-4">Pengumuman</h3>
-                    <div class="space-y-4">
-                        @forelse($pengumuman as $item)
-                        <div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                            <h4 class="text-sm font-semibold text-slate-700 leading-tight">{{ $item->judul }}</h4>
-                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ $item->isi }}</p>
-                            <p class="text-xs text-slate-400 mt-1.5">{{ $item->created_at->diffForHumans() }}</p>
-                        </div>
-                        @empty
-                        <p class="text-sm text-slate-400 text-center py-6">Belum ada pengumuman</p>
-                        @endforelse
                     </div>
+                    @empty
+                    <p class="text-xs text-slate-400 text-center py-4">Tidak ada agenda</p>
+                    @endforelse
                 </div>
-
-                {{-- Agenda --}}
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-                    <h3 class="text-base font-bold text-slate-800 mb-4">Agenda Sekolah</h3>
-                    <div class="space-y-3">
-                        @forelse($agenda as $item)
-                        <div class="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                            <div class="bg-indigo-50 text-indigo-700 rounded-xl p-2 text-center min-w-[44px] shrink-0">
-                                <div class="text-base font-bold leading-none">{{ \Carbon\Carbon::parse($item->tanggal)->format('d') }}</div>
-                                <div class="text-[10px]">{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('M') }}</div>
-                            </div>
-                            <div>
-                                <p class="text-sm font-semibold text-slate-700">{{ $item->judul }}</p>
-                                <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">{{ $item->deskripsi }}</p>
-                            </div>
-                        </div>
-                        @empty
-                        <p class="text-sm text-slate-400 text-center py-6">Tidak ada agenda</p>
-                        @endforelse
-                    </div>
-                </div>
-
             </div>
-
         </div>
 
     </div>

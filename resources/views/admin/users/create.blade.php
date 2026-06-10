@@ -1,274 +1,197 @@
 <x-app-layout>
+    <x-page-header title="Tambah User" subtitle="Buat akun pengguna sistem baru"/>
 
-    <x-page-header
-        title="Tambah User"
-        subtitle="Dashboard / Users / Create"
-    />
+    <div class="max-w-2xl">
+        <div class="card overflow-hidden">
+            <div class="px-6 py-4" style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
+                <p class="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Formulir</p>
+                <h2 class="text-base font-bold text-white mt-0.5">Akun Pengguna Baru</h2>
+            </div>
+            <form method="POST" action="{{ route('users.store') }}" class="p-6 space-y-5">
+                @csrf
+                <input type="hidden" name="name" id="name_auto">
 
-    <div class="py-6">
-        <div class="max-w-4xl mx-auto">
+                <div>
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" value="{{ old('email') }}" placeholder="email@gmail.com" class="form-input w-full">
+                    @error('email')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" placeholder="Minimal 8 karakter" class="form-input w-full">
+                    @error('password')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="form-label">Role</label>
+                    <select name="role" id="roleSelect" class="form-input w-full">
+                        <option value="">-- Pilih Role --</option>
+                        <option value="admin">Admin</option>
+                        <option value="guru">Guru</option>
+                        <option value="kepala_sekolah">Kepala Sekolah</option>
+                        <option value="guru&wali_kelas">Guru & Wali Kelas</option>
+                        <option value="orang_tua">Orang Tua</option>
+                    </select>
+                    @error('role')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border p-6">
-
-                <form method="POST" action="{{ route('users.store') }}" class="space-y-6">
-                    @csrf
-
-                    {{-- AUTO NAME --}}
-                    <input type="hidden" name="name" id="name_auto">
-
-                    {{-- EMAIL --}}
-                    <div>
-                        <label class="text-sm font-semibold">Email</label>
-                        <input type="email"
-                            name="email"
-                            class="w-full mt-2 rounded-xl border-gray-300"
-                            placeholder="email@gmail.com">
-                    </div>
-
-                    {{-- PASSWORD --}}
-                    <div>
-                        <label class="text-sm font-semibold">Password</label>
-                        <input type="password"
-                            name="password"
-                            class="w-full mt-2 rounded-xl border-gray-300"
-                            placeholder="******">
-                    </div>
-
-                    {{-- ROLE --}}
-                    <div>
-                        <label class="text-sm font-semibold">Role</label>
-
-                        <select name="role" id="roleSelect"
-                            class="w-full mt-2 rounded-xl border-gray-300">
-
-                            <option value="">-- Pilih Role --</option>
-                            <option value="admin">Admin</option>
-                            <option value="guru">Guru</option>
-                            <option value="kepala_sekolah">Kepala Sekolah</option>
-                            <option value="guru&wali_kelas">Guru & Wali Kelas</option>
-                            <option value="orang_tua">Orang Tua</option>
-
-                        </select>
-                    </div>
-
-                    {{-- GURU --}}
-                    <div id="guruBox" class="hidden">
-                        <label class="text-sm font-semibold">Pilih Guru</label>
-
-                        <div class="flex gap-2 mt-2">
-                            <input type="hidden" name="guru_id" id="guru_id">
-
-                            <input type="text"
-                                id="guru_nama"
-                                readonly
-                                class="w-full bg-gray-50 rounded-xl border-gray-300"
-                                placeholder="Belum dipilih">
-
-                            <button type="button"
-                                id="btnGuru"
-                                onclick="openModal(this.dataset.modal)"
-                                data-modal="modalAllGuru"
-                                class="px-4 bg-indigo-600 text-white rounded-xl cursor-pointer">
-                                Pilih
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- SISWA --}}
-                    <div id="siswaBox" class="hidden">
-                        <label class="text-sm font-semibold">Pilih Siswa</label>
-
-                        <div class="flex gap-2 mt-2">
-                            <input type="hidden" name="siswa_id" id="siswa_id">
-
-                            <input type="text"
-                                id="siswa_nama"
-                                readonly
-                                class="w-full bg-gray-50 rounded-xl border-gray-300"
-                                placeholder="Belum dipilih">
-
-                            <button type="button"
-                                onclick="openModal('siswaModal')"
-                                class="px-4 bg-indigo-600 text-white rounded-xl cursor-pointer">
-                                Pilih
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- STATUS --}}
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" name="is_active" value="1" checked>
-                        <span>Aktif</span>
-                    </label>
-
-                    {{-- BUTTON --}}
-                    <div class="flex justify-end gap-3">
-                        <a href="{{ route('users.index') }}" class="px-5 py-2 border rounded-xl">
-                            Batal
-                        </a>
-
-                        <button class="px-5 py-2 bg-indigo-600 text-white rounded-xl">
-                            Simpan
+                {{-- Guru picker --}}
+                <div id="guruBox" class="hidden">
+                    <label class="form-label">Pilih Guru</label>
+                    <div class="flex gap-2">
+                        <input type="hidden" name="guru_id" id="guru_id">
+                        <input type="text" id="guru_nama" readonly placeholder="Belum dipilih" class="form-input w-full bg-slate-50 cursor-default">
+                        <button type="button" id="btnGuru" onclick="openModal(this.dataset.modal)" data-modal="modalAllGuru" class="btn-primary whitespace-nowrap">
+                            <i data-lucide="search" class="w-4 h-4"></i> Pilih
                         </button>
                     </div>
+                </div>
 
-                </form>
+                {{-- Siswa picker --}}
+                <div id="siswaBox" class="hidden">
+                    <label class="form-label">Pilih Siswa</label>
+                    <div class="flex gap-2">
+                        <input type="hidden" name="siswa_id" id="siswa_id">
+                        <input type="text" id="siswa_nama" readonly placeholder="Belum dipilih" class="form-input w-full bg-slate-50 cursor-default">
+                        <button type="button" onclick="openModal('siswaModal')" class="btn-primary whitespace-nowrap">
+                            <i data-lucide="search" class="w-4 h-4"></i> Pilih
+                        </button>
+                    </div>
+                </div>
 
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="is_active" value="1" id="is_active" checked
+                        class="w-4 h-4 text-blue-700 border-slate-300 rounded focus:ring-blue-500">
+                    <label for="is_active" class="text-sm text-slate-700 font-medium cursor-pointer">Aktif</label>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                    <a href="{{ route('users.index') }}" class="btn-secondary flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</x-app-layout>
+
+{{-- Modal Guru --}}
+<div id="modalAllGuru" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-5 py-4 flex items-center justify-between" style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
+            <h3 class="text-sm font-bold text-white">Pilih Guru</h3>
+            <button onclick="closeModal('modalAllGuru')" class="text-blue-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-5">
+            <input type="text" id="searchGuru" placeholder="Cari nama guru..." class="form-input w-full mb-4">
+            <div class="max-h-80 overflow-y-auto space-y-2">
+                @foreach($allGuru as $g)
+                <button type="button" onclick="selectGuru('{{ $g->id }}','{{ $g->nama }}')"
+                    class="guru-item w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-sm text-slate-700 transition">
+                    {{ $g->nama }}
+                </button>
+                @endforeach
             </div>
         </div>
     </div>
-</x-app-layout>
-
-{{-- ================= MODAL GURU ================= --}}
-<div id="modalAllGuru" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl rounded-2xl p-6 relative z-50 pointer-events-auto">
-
-        <div class="flex justify-between mb-3">
-            <h2 class="font-bold">Pilih Guru</h2>
-            <button onclick="closeModal('modalAllGuru')">✕</button>
-        </div>
-
-        <input type="text" id="searchGuru"
-            class="w-full mb-3 border rounded-xl p-2"
-            placeholder="Cari guru">
-
-        <div class="max-h-96 overflow-y-auto space-y-2">
-            @foreach($allGuru as $g)
-                <button type="button"
-                    onclick="selectGuru('{{ $g->id }}','{{ $g->nama }}')"
-                    class="guru-item w-full text-left p-3 border rounded-xl hover:bg-indigo-50 cursor-pointer">
-                    {{ $g->nama }}
-                </button>
-            @endforeach
-        </div>
-
-    </div>
 </div>
 
-{{-- ================= MODAL WALI KELAS ================= --}}
+{{-- Modal Wali Kelas --}}
 <div id="modalWaliKelas" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl rounded-2xl p-6 relative z-50 pointer-events-auto">
-
-        <div class="flex justify-between mb-3">
-            <h2 class="font-bold">Pilih Guru Wali Kelas</h2>
-            <button onclick="closeModal('modalWaliKelas')">✕</button>
+    <div class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-5 py-4 flex items-center justify-between" style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
+            <h3 class="text-sm font-bold text-white">Pilih Guru Wali Kelas</h3>
+            <button onclick="closeModal('modalWaliKelas')" class="text-blue-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-
-        <div class="max-h-96 overflow-y-auto space-y-2">
-            @foreach($guruWaliKelas as $g)
+        <div class="p-5">
+            <div class="max-h-80 overflow-y-auto space-y-2">
+                @foreach($guruWaliKelas as $g)
                 @if($g)
-                <button type="button"
-                    onclick="selectGuru('{{ $g->id }}','{{ $g->nama }}')"
-                    class="w-full text-left p-3 border rounded-xl hover:bg-indigo-50 cursor-pointer">
+                <button type="button" onclick="selectGuru('{{ $g->id }}','{{ $g->nama }}')"
+                    class="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-sm text-slate-700 transition">
                     {{ $g->nama }}
                 </button>
                 @endif
-            @endforeach
+                @endforeach
+            </div>
         </div>
-
     </div>
 </div>
 
-{{-- ================= MODAL SISWA ================= --}}
+{{-- Modal Siswa --}}
 <div id="siswaModal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl rounded-2xl p-6 relative z-50 pointer-events-auto">
-
-        <div class="flex justify-between mb-3">
-            <h2 class="font-bold">Pilih Siswa</h2>
-            <button onclick="closeModal('siswaModal')">✕</button>
+    <div class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-5 py-4 flex items-center justify-between" style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
+            <h3 class="text-sm font-bold text-white">Pilih Siswa</h3>
+            <button onclick="closeModal('siswaModal')" class="text-blue-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-
-        <input type="text" id="searchSiswa"
-            class="w-full mb-3 border rounded-xl p-2"
-            placeholder="Cari siswa">
-
-        <div class="max-h-96 overflow-y-auto space-y-2">
-            @foreach($siswas ?? [] as $s)
-                <button type="button"
-                    onclick="selectSiswa('{{ $s->id }}','{{ $s->nama }}')"
-                    class="siswa-item w-full text-left p-3 border rounded-xl hover:bg-indigo-50 cursor-pointer">
+        <div class="p-5">
+            <input type="text" id="searchSiswa" placeholder="Cari nama siswa..." class="form-input w-full mb-4">
+            <div class="max-h-80 overflow-y-auto space-y-2">
+                @foreach($siswas ?? [] as $s)
+                <button type="button" onclick="selectSiswa('{{ $s->id }}','{{ $s->nama }}')"
+                    class="siswa-item w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-sm text-slate-700 transition">
                     {{ $s->nama }}
                 </button>
-            @endforeach
+                @endforeach
+            </div>
         </div>
-
     </div>
 </div>
 
-{{-- ================= SCRIPT ================= --}}
 <script>
-const role = document.getElementById('roleSelect');
-const guruBox = document.getElementById('guruBox');
-const siswaBox = document.getElementById('siswaBox');
-const btnGuru = document.getElementById('btnGuru');
+const roleSelect = document.getElementById('roleSelect');
+const guruBox    = document.getElementById('guruBox');
+const siswaBox   = document.getElementById('siswaBox');
+const btnGuru    = document.getElementById('btnGuru');
 
-role.addEventListener('change', function () {
-
+roleSelect.addEventListener('change', function() {
     guruBox.classList.add('hidden');
     siswaBox.classList.add('hidden');
-
-    if (this.value === 'admin' || this.value === 'guru' || this.value === 'kepala_sekolah') {
+    if (['admin','guru','kepala_sekolah'].includes(this.value)) {
         guruBox.classList.remove('hidden');
         btnGuru.dataset.modal = 'modalAllGuru';
-    }
-
-    if (this.value === 'guru&wali_kelas') {
+    } else if (this.value === 'guru&wali_kelas') {
         guruBox.classList.remove('hidden');
         btnGuru.dataset.modal = 'modalWaliKelas';
-    }
-
-    if (this.value === 'orang_tua') {
+    } else if (this.value === 'orang_tua') {
         siswaBox.classList.remove('hidden');
     }
 });
 
-function openModal(id){
+function openModal(id) {
     const el = document.getElementById(id);
-    if(el){
-        el.classList.remove('hidden');
-        el.classList.add('flex');
-    }
+    if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
 }
-
-function closeModal(id){
+function closeModal(id) {
     const el = document.getElementById(id);
-    if(el){
-        el.classList.add('hidden');
-        el.classList.remove('flex');
-    }
+    if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
 }
-
-// SELECT GURU
-function selectGuru(id,nama){
-    document.getElementById('guru_id').value = id;
+function selectGuru(id, nama) {
+    document.getElementById('guru_id').value   = id;
     document.getElementById('guru_nama').value = nama;
     document.getElementById('name_auto').value = nama;
-
     closeModal('modalAllGuru');
     closeModal('modalWaliKelas');
 }
-
-// SELECT SISWA
-function selectSiswa(id,nama){
-    document.getElementById('siswa_id').value = id;
+function selectSiswa(id, nama) {
+    document.getElementById('siswa_id').value   = id;
     document.getElementById('siswa_nama').value = nama;
-    document.getElementById('name_auto').value = nama;
-
+    document.getElementById('name_auto').value  = nama;
     closeModal('siswaModal');
 }
-
-// SEARCH GURU
-document.getElementById('searchGuru').addEventListener('input', function(){
-    let v = this.value.toLowerCase();
-    document.querySelectorAll('.guru-item').forEach(i=>{
+document.getElementById('searchGuru').addEventListener('input', function() {
+    const v = this.value.toLowerCase();
+    document.querySelectorAll('.guru-item').forEach(i => {
         i.style.display = i.innerText.toLowerCase().includes(v) ? '' : 'none';
     });
 });
-
-// SEARCH SISWA
-document.getElementById('searchSiswa').addEventListener('input', function(){
-    let v = this.value.toLowerCase();
-    document.querySelectorAll('.siswa-item').forEach(i=>{
+document.getElementById('searchSiswa').addEventListener('input', function() {
+    const v = this.value.toLowerCase();
+    document.querySelectorAll('.siswa-item').forEach(i => {
         i.style.display = i.innerText.toLowerCase().includes(v) ? '' : 'none';
     });
 });

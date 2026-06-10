@@ -6,35 +6,24 @@
     />
 
     {{-- ── HEADER INFO ─────────────────────────────────────────────────── --}}
-    <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-6 mb-6 flex items-center justify-between shadow-lg">
+    <div class="rounded-2xl p-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm"
+         style="background:linear-gradient(135deg,#1e3a5f,#1e40af)">
         <div>
-            <p class="text-slate-300 text-xs font-semibold uppercase tracking-widest mb-1">Wali Kelas · Fuzzy Mamdani 36 Rule</p>
-            <h2 class="text-xl font-bold text-white">
+            <p class="text-blue-200 text-[10px] font-bold uppercase tracking-widest mb-0.5">Wali Kelas · Fuzzy Mamdani</p>
+            <h2 class="text-lg font-bold text-white">
                 Rekap Evaluasi —
-                @if($kelas)
-                    Kelas {{ $kelas->nama_kelas }}
-                @else
-                    <span class="text-slate-400">Belum ada kelas binaan</span>
+                @if($kelas) Kelas {{ $kelas->nama_kelas }}
+                @else <span class="text-blue-300">Belum ada kelas binaan</span>
                 @endif
             </h2>
-            <p class="text-slate-300 text-sm mt-1">
-                Tahun Ajaran: <strong class="text-white">{{ $tahun->tahun ?? '-' }}</strong>
-                · Guru: <strong class="text-white">{{ auth()->user()->name }}</strong>
+            <p class="text-blue-200 text-xs mt-0.5">
+                TA: <strong class="text-white">{{ $tahun->tahun ?? '-' }}</strong>
+                &nbsp;·&nbsp; {{ auth()->user()->name }}
             </p>
         </div>
-        <div class="hidden md:flex flex-col items-end gap-1 text-xs text-slate-300">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>Nilai Akademik (semua mapel)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>Absensi (semua pertemuan)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>Sikap (semua guru)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-lime-400"></span>Disiplin (semua guru)
-            </div>
+        <div class="hidden sm:flex flex-col items-end gap-1 text-[11px] text-blue-200">
+            <span>36 Rule Base · Membership Triangular</span>
+            <span>Defuzzifikasi Centroid</span>
         </div>
     </div>
 
@@ -57,68 +46,50 @@
     @else
 
     {{-- ── FILTER BULAN ─────────────────────────────────────────────────── --}}
-    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
-        <div class="px-6 py-4 bg-slate-50 border-b flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-            </svg>
-            <h3 class="text-sm font-bold text-slate-700">Filter Bulan</h3>
-            <span class="text-xs text-slate-400">— Pilih bulan untuk melihat rekap evaluasi kelas</span>
+    <div class="card overflow-hidden mb-5">
+        <div class="px-5 py-3.5 bg-slate-50 border-b flex items-center gap-2">
+            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+            <span class="text-sm font-semibold text-slate-700">Filter Bulan</span>
         </div>
-        <form method="GET" class="p-6">
-            <div class="flex flex-wrap items-end gap-4">
-                <div class="flex-1 min-w-[180px] max-w-xs">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                        Bulan <span class="text-red-400">*</span>
-                    </label>
-                    <select name="bulan"
-                        class="w-full rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500">
+        <form method="GET" class="p-5">
+            <div class="flex flex-wrap items-end gap-3">
+                <div>
+                    <label class="form-label">Bulan</label>
+                    <select name="bulan" class="form-input w-auto">
                         @foreach(['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $key=>$val)
                             <option value="{{ $key }}" {{ $bulan == $key ? 'selected' : '' }}>{{ $val }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="flex gap-2">
-                    <button type="submit"
-                        class="bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110 3a7.5 7.5 0 016.65 13.65z"/>
-                        </svg>
-                        Tampilkan
-                    </button>
-                    <a href="{{ route('rekap.evaluasi.kelas') }}"
-                        class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-500 text-sm transition">
-                        Reset
-                    </a>
-                </div>
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="search" class="w-4 h-4"></i> Tampilkan
+                </button>
+                <a href="{{ route('rekap.evaluasi.kelas') }}" class="btn-secondary">Reset</a>
             </div>
         </form>
     </div>
 
     {{-- ── STATISTIK SUMMARY ────────────────────────────────────────────── --}}
     @if($data->count())
-    @php
-        $distrib = $data->groupBy('kategori');
-    @endphp
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm border p-5">
-            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Total Siswa</p>
-            <p class="text-3xl font-bold text-slate-800 mt-1">{{ $data->count() }}</p>
-            <p class="text-xs text-slate-400 mt-1">di kelas {{ $kelas->nama_kelas }}</p>
+    @php $distrib = $data->groupBy('kategori'); @endphp
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+        <div class="card p-5">
+            <p class="stat-card-label">Total Siswa</p>
+            <p class="stat-card-value text-slate-800">{{ $data->count() }}</p>
+            <p class="text-xs text-slate-400 mt-1">Kelas {{ $kelas->nama_kelas }}</p>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm border p-5">
-            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Rata-rata Skor</p>
-            <p class="text-3xl font-bold text-slate-700 mt-1">{{ round($data->avg('skor'), 1) }}</p>
-            <p class="text-xs text-slate-400 mt-1">bulan {{ $namaBulan }}</p>
+        <div class="card p-5">
+            <p class="stat-card-label">Rata-rata Skor</p>
+            <p class="stat-card-value text-blue-700">{{ round($data->avg('skor'), 1) }}</p>
+            <p class="text-xs text-slate-400 mt-1">Bulan {{ $namaBulan }}</p>
         </div>
-        <div class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-100 p-5">
-            <p class="text-xs text-emerald-600 font-semibold uppercase tracking-wide">Sangat Baik</p>
-            <p class="text-3xl font-bold text-emerald-700 mt-1">{{ ($distrib['Sangat Baik'] ?? collect())->count() }}</p>
+        <div class="card p-5 border-emerald-100 bg-emerald-50">
+            <p class="stat-card-label text-emerald-600">Sangat Baik</p>
+            <p class="stat-card-value text-emerald-700">{{ ($distrib['Sangat Baik'] ?? collect())->count() }}</p>
             <p class="text-xs text-emerald-500 mt-1">🌟 siswa</p>
         </div>
-        <div class="bg-rose-50 rounded-2xl shadow-sm border border-rose-100 p-5">
-            <p class="text-xs text-rose-600 font-semibold uppercase tracking-wide">Perlu Pembinaan</p>
+        <div class="card p-5 border-rose-100 bg-rose-50">
+            <p class="stat-card-label text-rose-600">Perlu Pembinaan</p>
             <p class="text-3xl font-bold text-rose-700 mt-1">{{ ($distrib['Perlu Pembinaan'] ?? collect())->count() }}</p>
             <p class="text-xs text-rose-500 mt-1">⚠️ siswa</p>
         </div>

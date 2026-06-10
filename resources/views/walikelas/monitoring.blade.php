@@ -6,31 +6,26 @@
     />
 
     {{-- ── HEADER KELAS ────────────────────────────────────────────────────── --}}
-    <div class="bg-gradient-to-r from-teal-700 to-emerald-600 rounded-2xl p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-lg">
+    <div class="rounded-2xl p-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm"
+         style="background:linear-gradient(135deg,#134e4a,#0f766e)">
         <div>
-            <p class="text-teal-100 text-xs font-semibold uppercase tracking-widest mb-1">Wali Kelas · Monitoring Akademik</p>
-            <h2 class="text-2xl font-bold text-white">
-                @if($kelas)
-                    Kelas {{ $kelas->nama_kelas }}
-                @else
-                    <span class="text-teal-300">Belum ada kelas binaan</span>
+            <p class="text-teal-200 text-[10px] font-bold uppercase tracking-widest mb-0.5">Wali Kelas · Monitoring Akademik</p>
+            <h2 class="text-lg font-bold text-white">
+                @if($kelas) Kelas {{ $kelas->nama_kelas }}
+                @else <span class="text-teal-300">Belum ada kelas binaan</span>
                 @endif
             </h2>
-            <p class="text-teal-100 text-sm mt-1">
-                Tahun Ajaran: <strong class="text-white">{{ $tahunAktif->tahun ?? '-' }}</strong>
-                · <strong class="text-white">{{ auth()->user()->name }}</strong>
+            <p class="text-teal-200 text-xs mt-0.5">
+                TA: <strong class="text-white">{{ $tahunAktif->tahun ?? '-' }}</strong>
+                &nbsp;·&nbsp; {{ auth()->user()->name }}
             </p>
         </div>
         @if($kelas)
-        <div class="flex flex-wrap gap-2">
-            <a href="{{ route('rekap.evaluasi.kelas') }}"
-                class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                Rekap Evaluasi
-            </a>
-        </div>
+        <a href="{{ route('rekap.evaluasi.kelas') }}"
+            class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/20
+                   text-white text-xs font-semibold px-4 py-2 rounded-lg transition self-start sm:self-auto">
+            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Rekap Evaluasi
+        </a>
         @endif
     </div>
 
@@ -50,59 +45,51 @@
     @else
 
     {{-- ── FILTER BULAN ────────────────────────────────────────────────────── --}}
-    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
-        <div class="px-6 py-3 bg-slate-50 border-b flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-            </svg>
-            <span class="text-sm font-bold text-slate-600">Filter Bulan</span>
+    <div class="card overflow-hidden mb-5">
+        <div class="px-5 py-3.5 bg-slate-50 border-b flex items-center gap-2">
+            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+            <span class="text-sm font-semibold text-slate-700">Filter Bulan</span>
         </div>
-        <form method="GET" class="px-6 py-4 flex flex-wrap items-end gap-4">
+        <form method="GET" class="px-5 py-4 flex flex-wrap items-end gap-4">
             <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Bulan</label>
-                <select name="bulan" onchange="this.form.submit()"
-                    class="rounded-xl border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 pr-8">
+                <label class="form-label">Bulan</label>
+                <select name="bulan" onchange="this.form.submit()" class="form-input w-auto">
                     @foreach(['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $k=>$v)
                         <option value="{{ $k }}" {{ $bulan==$k ? 'selected':'' }}>{{ $v }}</option>
                     @endforeach
                 </select>
             </div>
-            {{-- Input search --}}
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Cari Siswa</label>
+            <div class="flex-1 min-w-[180px]">
+                <label class="form-label">Cari Siswa</label>
                 <div class="relative">
-                    <input id="searchInput" type="text" placeholder="Ketik nama siswa..."
-                        class="w-full rounded-xl border-slate-300 text-sm pl-9 focus:ring-2 focus:ring-teal-500">
-                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110 3a7.5 7.5 0 016.65 13.65z"/>
-                    </svg>
+                    <input id="searchInput" type="text" placeholder="Ketik nama siswa..." class="form-input pl-9">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
                 </div>
             </div>
-            <a href="{{ route('rekap.nilai.kelas') }}"
-                class="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-500 text-sm transition">Reset</a>
+            <a href="{{ route('rekap.nilai.kelas') }}" class="btn-secondary">Reset</a>
         </form>
     </div>
 
     {{-- ── KARTU RINGKASAN ──────────────────────────────────────────────────── --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl border shadow-sm p-5">
-            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Total Siswa</p>
-            <p class="text-3xl font-bold text-slate-800 mt-1">{{ $ringkasan['total_siswa'] }}</p>
-            <p class="text-xs text-slate-400 mt-1">di kelas {{ $kelas->nama_kelas }}</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+        <div class="card p-5">
+            <p class="stat-card-label">Total Siswa</p>
+            <p class="stat-card-value text-slate-800">{{ $ringkasan['total_siswa'] }}</p>
+            <p class="text-xs text-slate-400 mt-1">Kelas {{ $kelas->nama_kelas }}</p>
         </div>
-        <div class="bg-white rounded-2xl border shadow-sm p-5">
-            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Rata-rata Nilai</p>
-            <p class="text-3xl font-bold mt-1 {{ $ringkasan['avg_nilai'] >= 75 ? 'text-teal-600' : 'text-amber-600' }}">
+        <div class="card p-5">
+            <p class="stat-card-label">Rata-rata Nilai</p>
+            <p class="stat-card-value mt-1 {{ $ringkasan['avg_nilai'] >= 75 ? 'text-teal-700' : 'text-amber-600' }}">
                 {{ $ringkasan['avg_nilai'] }}
             </p>
-            <p class="text-xs text-slate-400 mt-1">bulan {{ $namaBulan }}</p>
+            <p class="text-xs text-slate-400 mt-1">Bulan {{ $namaBulan }}</p>
         </div>
-        <div class="bg-white rounded-2xl border shadow-sm p-5">
-            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Rata-rata Hadir</p>
-            <p class="text-3xl font-bold mt-1 {{ $ringkasan['avg_hadir'] >= 75 ? 'text-emerald-600' : 'text-rose-600' }}">
+        <div class="card p-5">
+            <p class="stat-card-label">Rata-rata Hadir</p>
+            <p class="stat-card-value mt-1 {{ $ringkasan['avg_hadir'] >= 75 ? 'text-emerald-700' : 'text-rose-600' }}">
                 {{ $ringkasan['avg_hadir'] }}%
             </p>
-            <p class="text-xs text-slate-400 mt-1">bulan {{ $namaBulan }}</p>
+            <p class="text-xs text-slate-400 mt-1">Bulan {{ $namaBulan }}</p>
         </div>
         <div class="bg-rose-50 rounded-2xl border border-rose-100 shadow-sm p-5">
             <p class="text-xs text-rose-600 font-semibold uppercase tracking-wide">Perlu Tindakan</p>
