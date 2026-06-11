@@ -7,10 +7,44 @@ class="max-w-7xl mx-auto px-6 py-8 space-y-8"
 >
 
     {{-- HEADER --}}
-    <div>
+    <!-- <div>
         <h1 class="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
         <p class="text-gray-500 text-sm">Overview data sekolah</p>
+    </div> -->
+
+        {{-- ── INFO SEKOLAH (kurikulum) ───────────────────────────────── --}}
+    @if($profilSekolah && ($profilSekolah->nama_sekolah || $profilSekolah->kurikulum))
+    <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 rounded-2xl p-4 mb-6 flex flex-wrap items-center gap-4">
+        @if($profilSekolah->logo_sekolah)
+            <img src="{{ asset('storage/'.$profilSekolah->logo_sekolah) }}"
+                class="w-12 h-12 rounded-xl bg-white object-contain p-1 shrink-0">
+        @endif
+        <div class="flex-1 min-w-0">
+            <h3 class="text-white font-bold text-base leading-tight truncate">
+                {{ $profilSekolah->nama_sekolah ?? 'Nama Sekolah' }}
+            </h3>
+            <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-blue-100 text-xs">
+                @if($profilSekolah->jenjang)   <span>{{ $profilSekolah->jenjang }}</span> @endif
+                @if($profilSekolah->akreditasi) <span>Akreditasi: {{ $profilSekolah->akreditasi }}</span> @endif
+                @if($profilSekolah->npsn)       <span>NPSN: {{ $profilSekolah->npsn }}</span> @endif
+            </div>
+        </div>
+        @if($profilSekolah->kurikulum)
+        <div class="shrink-0">
+            <span class="bg-white/20 border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                {{ $profilSekolah->kurikulum }}
+            </span>
+        </div>
+        @endif
+        <a href="{{ route('profil-sekolah.index') }}"
+            class="shrink-0 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+            Edit Profil
+        </a>
     </div>
+    @endif
 
     
     {{-- STATISTIK --}}
@@ -63,39 +97,7 @@ class="max-w-7xl mx-auto px-6 py-8 space-y-8"
 
     </div>
 
-    {{-- ── INFO SEKOLAH (kurikulum) ───────────────────────────────── --}}
-    @if($profilSekolah && ($profilSekolah->nama_sekolah || $profilSekolah->kurikulum))
-    <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 rounded-2xl p-4 mb-6 flex flex-wrap items-center gap-4">
-        @if($profilSekolah->logo_sekolah)
-            <img src="{{ asset('storage/'.$profilSekolah->logo_sekolah) }}"
-                class="w-12 h-12 rounded-xl bg-white object-contain p-1 shrink-0">
-        @endif
-        <div class="flex-1 min-w-0">
-            <h3 class="text-white font-bold text-base leading-tight truncate">
-                {{ $profilSekolah->nama_sekolah ?? 'Nama Sekolah' }}
-            </h3>
-            <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-blue-100 text-xs">
-                @if($profilSekolah->jenjang)   <span>{{ $profilSekolah->jenjang }}</span> @endif
-                @if($profilSekolah->akreditasi) <span>Akreditasi: {{ $profilSekolah->akreditasi }}</span> @endif
-                @if($profilSekolah->npsn)       <span>NPSN: {{ $profilSekolah->npsn }}</span> @endif
-            </div>
-        </div>
-        @if($profilSekolah->kurikulum)
-        <div class="shrink-0">
-            <span class="bg-white/20 border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
-                {{ $profilSekolah->kurikulum }}
-            </span>
-        </div>
-        @endif
-        <a href="{{ route('profil-sekolah.index') }}"
-            class="shrink-0 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
-            Edit Profil
-        </a>
-    </div>
-    @endif
+
         
 
         {{-- ── KELOLA EVALUASI ─────────────────────────────────────────── --}}
@@ -344,10 +346,12 @@ class="max-w-7xl mx-auto px-6 py-8 space-y-8"
 
             <div class="flex justify-between items-center p-4 border-b">
                 <h2 class="font-semibold text-gray-700">Pengumuman</h2>
-
                 <button @click="openPengumuman=true"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 md:px-3 py-1 rounded-lg text-xs md:text-sm"
-                    + Tambah
+                    class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah
                 </button>
             </div>
 
@@ -378,20 +382,47 @@ class="max-w-7xl mx-auto px-6 py-8 space-y-8"
         </div>
 
         {{-- ================= AGENDA ================= --}}
-        <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border">
+        <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border overflow-hidden">
 
             <div class="flex justify-between items-center p-4 border-b">
                 <h2 class="font-semibold text-gray-700">Agenda Sekolah</h2>
-
                 <button @click="openAgenda=true"
-                    class="bg-green-600 hover:bg-green-700 text-white px-2 md:px-3 py-1 rounded-lg text-xs md:text-sm"
-                    + Tambah
+                    class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah
                 </button>
             </div>
 
-            <div class="p-4">
+            {{-- Kalender --}}
+            <div class="p-4" style="min-height:420px">
                 <div id="calendar"></div>
             </div>
+
+            {{-- Daftar agenda mendatang --}}
+            @if($agenda->isNotEmpty())
+            <div class="border-t px-4 py-3">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agenda Mendatang</p>
+                <div class="grid md:grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                    @foreach($agenda->sortBy('tanggal')->take(6) as $ag)
+                    <div class="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50 transition"
+                         @click="selectedAgenda={title:'{{ addslashes($ag->judul) }}',date:'{{ $ag->tanggal }}',lokasi:'{{ addslashes($ag->lokasi ?? '') }}',description:'{{ addslashes($ag->deskripsi ?? '') }}'};window.selectedId='{{ $ag->id }}';detailAgenda=true">
+                        <div class="bg-emerald-100 text-emerald-700 rounded-lg px-2 py-1 text-center min-w-[40px] shrink-0">
+                            <div class="text-sm font-bold leading-none">{{ \Carbon\Carbon::parse($ag->tanggal)->format('d') }}</div>
+                            <div class="text-[9px] font-semibold mt-0.5">{{ \Carbon\Carbon::parse($ag->tanggal)->translatedFormat('M') }}</div>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-700 line-clamp-1">{{ $ag->judul }}</p>
+                            @if($ag->lokasi)
+                            <p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">📍 {{ $ag->lokasi }}</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
         </div>
 
@@ -600,38 +631,57 @@ function dashboardApp() {
         selectedPengumuman:{},
 
         initCalendar() {
-            let calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth',
-                height: window.innerWidth < 768 ? 400 : 450,
-
-                events: [
-                    @foreach($agenda as $a)
-                    {
-                        id: "{{ $a->id }}",
-                        title: "{{ $a->judul }}",
-                        start: "{{ $a->tanggal }}",
-                        description: "{{ $a->deskripsi }}",
-                        lokasi: "{{ $a->lokasi }}"
+            // FullCalendar di-load dengan defer — tunggu sampai tersedia
+            const renderCal = () => {
+                if (typeof FullCalendar === 'undefined') {
+                    setTimeout(renderCal, 100);
+                    return;
+                }
+                let calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                    initialView: 'dayGridMonth',
+                    height: window.innerWidth < 768 ? 400 : 450,
+                    locale: 'id',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,listMonth'
                     },
-                    @endforeach
-                ],
+                    buttonText: {
+                        today: 'Hari Ini',
+                        month: 'Bulan',
+                        list:  'Daftar'
+                    },
 
-                eventClick: (info) => {
+                    events: [
+                        @foreach($agenda as $a)
+                        {
+                            id: "{{ $a->id }}",
+                            title: "{{ $a->judul }}",
+                            start: "{{ $a->tanggal }}",
+                            description: "{{ $a->deskripsi }}",
+                            lokasi: "{{ $a->lokasi }}"
+                        },
+                        @endforeach
+                    ],
+
+                    eventClick: (info) => {
+                        this.selectedAgenda = {
+                            title: info.event.title,
+                            date: info.event.startStr,
+                            lokasi: info.event.extendedProps.lokasi,
+                            description: info.event.extendedProps.description
+                        };
+                        window.selectedId = info.event.id;
+                        this.detailAgenda = true;
+                    }
+                });
+                calendar.render();
+            };
+            renderCal();
+        },
                     this.selectedAgenda = {
                         title: info.event.title,
                         date: info.event.startStr,
-                        lokasi: info.event.extendedProps.lokasi,
-                        description: info.event.extendedProps.description
-                    };
-
-                    window.selectedId = info.event.id;
-                    this.detailAgenda = true;
-                }
-            });
-
-            calendar.render();
-        },
-
         openPengumumanDetail(data) {
             this.selectedPengumuman = {
                 id: data.id,

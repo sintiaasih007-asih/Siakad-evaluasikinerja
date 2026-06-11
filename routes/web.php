@@ -30,14 +30,22 @@ use App\Http\Controllers\Orangtua\PenilaianKarakterController;
 use App\Http\Controllers\OrangTua\PerkembanganAnakController;
 use App\Http\Controllers\OrangTua\EvaluasiBulananAnakController;
 use App\Http\Controllers\OrangTua\EvaluasiSemesteranAnakController;
+use App\Http\Controllers\KepsekController;
 use App\Http\Controllers\Admin\LaporanAbsensiGuruController;
+use App\Http\Controllers\Admin\LaporanAbsensiSiswaController;
 use App\Http\Controllers\Admin\ProfileSekolahController;
 use App\Http\Controllers\Admin\QrAbsensiGuruController;
-use App\Http\Controllers\Admin\LaporanAbsensiSiswaController;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    $profil = \App\Models\ProfileSekolah::first();
+    $stats  = [
+        'siswa' => \App\Models\Siswa::count(),
+        'guru'  => \App\Models\Guru::count(),
+        'kelas' => \App\Models\Kelas::count(),
+        'mapel' => \App\Models\Mapel::count(),
+    ];
+    return view('welcome', compact('profil', 'stats'));
 });
 
 Route::get('/dashboard', function () {
@@ -217,7 +225,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/evaluasi-bulanan', 
+    Route::get('/evaluasi-bulanan',
         [EvaluasiBulananController::class, 'index']
     )->name('evaluasi.bulanan');
 
@@ -225,6 +233,15 @@ Route::middleware(['auth'])->group(function () {
         [EvaluasiSemesteranController::class, 'index']
     )->name('evaluasi.semesteran');
 
+});
+
+
+// ── Kepala Sekolah ──────────────────────────────────────────────────────────
+Route::middleware(['auth'])->prefix('kepsek')->name('kepsek.')->group(function () {
+    Route::get('/laporan-akademik',  [KepsekController::class, 'laporanAkademik'])->name('laporan-akademik');
+    Route::get('/monitoring-guru',   [KepsekController::class, 'monitoringGuru']) ->name('monitoring-guru');
+    Route::get('/monitoring-siswa',  [KepsekController::class, 'monitoringSiswa'])->name('monitoring-siswa');
+    Route::get('/hasil-evaluasi',    [KepsekController::class, 'hasilEvaluasi'])  ->name('hasil-evaluasi');
 });
 
 

@@ -30,18 +30,8 @@
 @endphp
 
 <body
-    x-data="{
-        sidebarOpen: window.innerWidth >= 1024,
-        mobileOpen: false,
-        init() {
-            this.$watch('mobileOpen', v => {
-                document.body.style.overflow = v ? 'hidden' : '';
-            });
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 1024) this.mobileOpen = false;
-            });
-        }
-    }"
+    x-data="appLayout()"
+    x-init="initApp()"
     class="h-full bg-slate-50 antialiased"
     style="font-family: 'Inter', sans-serif;">
 
@@ -238,9 +228,9 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script>if(typeof lucide !== 'undefined') lucide.createIcons();</script>
 
-    {{-- FullCalendar (lazy load) --}}
+    {{-- FullCalendar --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
     {{-- Toast --}}
     <div id="toast"
@@ -261,6 +251,52 @@
         });
     </script>
     @endif
+
+    {{-- ── Alpine: satu scope untuk seluruh layout ────────────────── --}}
+    <script>
+    function appLayout() {
+        const SUB_KEY   = 'siakad_sub_{{ Auth::id() }}';
+        const onAkademik = {{ request()->is('siswa*','guru*','kelas*','mapel*','jadwal*','tahun-ajaran*','riwayat*','alumni*') ? 'true' : 'false' }};
+        const onLaporan  = {{ request()->routeIs('laporan-absensi-guru.*','laporan-absensi-siswa.*') ? 'true' : 'false' }};
+
+        return {
+            sidebarOpen: window.innerWidth >= 1024,
+            mobileOpen:  false,
+            subOpen: { akademik: false, laporan: false },
+
+            initApp() {
+                // Sidebar responsive
+                this.$watch('mobileOpen', v => {
+                    document.body.style.overflow = v ? 'hidden' : '';
+                });
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 1024) this.mobileOpen = false;
+                });
+
+                // Baca state submenu dari localStorage
+                try {
+                    const saved = localStorage.getItem(SUB_KEY);
+                    if (saved) {
+                        this.subOpen = { ...this.subOpen, ...JSON.parse(saved) };
+                    } else {
+                        // Default: buka sesuai halaman aktif
+                        if (onAkademik) this.subOpen.akademik = true;
+                        if (onLaporan)  this.subOpen.laporan  = true;
+                    }
+                } catch(e) { /* abaikan */ }
+
+                // Simpan ke localStorage setiap kali berubah
+                this.$watch('subOpen', val => {
+                    localStorage.setItem(SUB_KEY, JSON.stringify(val));
+                }, { deep: true });
+            },
+
+            toggleSub(key) {
+                this.subOpen[key] = !this.subOpen[key];
+            },
+        };
+    }
+    </script>
 
 </body>
 </html>
